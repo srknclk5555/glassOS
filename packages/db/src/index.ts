@@ -1,7 +1,7 @@
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
 import * as schema from "./schema/index";
-
+console.log("DATABASE_URL:", !!process.env.DATABASE_URL);
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL environment variable is not defined.");
 }
