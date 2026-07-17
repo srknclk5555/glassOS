@@ -12,6 +12,7 @@ import {
 import { requireSession } from "@/lib/session";
 import { withTenantSession } from "@/lib/dbSession";
 import { ensurePermission } from "@/lib/authorization";
+import { perfLog, perfStart, perfEnd } from "@/lib/perf";
 
 // Simple ULID generator for char(26) ULID primary keys
 function generateULID(): string {
@@ -36,8 +37,8 @@ export interface MachineListFilters {
 }
 
 export async function getMachinesAction(filters?: MachineListFilters) {
-  const tActionStart = Date.now();
-  console.log(`[PERF_LOG] [${tActionStart}] [getMachinesAction] - Started`);
+  const tActionStart = perfStart("[getMachinesAction]");
+  perfLog("[getMachinesAction]", "Started", Date.now());
   const session = await requireSession();
   await ensurePermission("machines:read");
 
@@ -79,8 +80,8 @@ export async function getMachinesAction(filters?: MachineListFilters) {
     const pageSize = filters?.pageSize ?? 20;
     const offset = (page - 1) * pageSize;
 
-    const tFirstSql = Date.now();
-    console.log(`[PERF_LOG] [${tFirstSql}] [7. İlk SQL] - Executing select query`);
+    const tFirstSql = perfStart("[7. İlk SQL]");
+    perfLog("[7. İlk SQL]", "Executing select query", Date.now());
     const items = await tx
       .select()
       .from(machines)
@@ -88,15 +89,15 @@ export async function getMachinesAction(filters?: MachineListFilters) {
       .orderBy(orderByDir((machines as any)[orderByColumn] ?? machines.createdAt))
       .limit(pageSize)
       .offset(offset);
-    console.log(`[PERF_LOG] [${Date.now()}] [7. İlk SQL] - Completed (Duration: ${Date.now() - tFirstSql}ms)`);
+    perfEnd("[7. İlk SQL]", tFirstSql);
 
-    const tLastSql = Date.now();
-    console.log(`[PERF_LOG] [${tLastSql}] [8. Son SQL] - Executing count query`);
+    const tLastSql = perfStart("[8. Son SQL]");
+    perfLog("[8. Son SQL]", "Executing count query", Date.now());
     const totalResult = await tx
       .select({ count: sql<number>`count(*)` })
       .from(machines)
       .where(where);
-    console.log(`[PERF_LOG] [${Date.now()}] [8. Son SQL] - Completed (Duration: ${Date.now() - tLastSql}ms)`);
+    perfEnd("[8. Son SQL]", tLastSql);
 
     const total = Number(totalResult[0]?.count ?? 0);
 
@@ -109,15 +110,18 @@ export async function getMachinesAction(filters?: MachineListFilters) {
     };
   });
 
-  console.log(`[PERF_LOG] [${Date.now()}] [getMachinesAction] - Completed (Duration: ${Date.now() - tActionStart}ms)`);
+  perfEnd("[getMachinesAction]", tActionStart);
   return res;
 }
 
 export async function getMachineByIdAction(id: string) {
+  const tActionStart = perfStart("[getMachineByIdAction]");
+  perfLog("[getMachineByIdAction]", `Fetching machine ${id}`, Date.now());
   const session = await requireSession();
   await ensurePermission("machines:read");
 
-  return await withTenantSession(session, async (tx: any) => {
+  const res = await withTenantSession(session, async (tx: any) => {
+    const tQuery = perfStart("[getMachineByIdAction] SQL");
     const item = await tx
       .select()
       .from(machines)
@@ -129,9 +133,13 @@ export async function getMachineByIdAction(id: string) {
         )
       )
       .limit(1);
+    perfEnd("[getMachineByIdAction] SQL", tQuery);
 
     return item[0] ?? null;
   });
+
+  perfEnd("[getMachineByIdAction]", tActionStart);
+  return res;
 }
 
 // Helper to convert empty strings to null and numeric strings to numbers

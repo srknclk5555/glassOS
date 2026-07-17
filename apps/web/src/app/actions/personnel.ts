@@ -13,6 +13,7 @@ import {
 import { requireSession } from "@/lib/session";
 import { withTenantSession } from "@/lib/dbSession";
 import { ensurePermission } from "@/lib/authorization";
+import { perfLog, perfStart, perfEnd } from "@/lib/perf";
 
 // Simple ULID generator for char(26) ULID primary keys
 function generateULID(): string {
@@ -52,10 +53,12 @@ export interface PersonnelListFilters {
 }
 
 export async function getPersonnelAction(filters?: PersonnelListFilters) {
+  const tActionStart = perfStart("[getPersonnelAction]");
+  perfLog("[getPersonnelAction]", "Started", Date.now());
   const session = await requireSession();
   await ensurePermission("personnel:read");
 
-  return await withTenantSession(session, async (tx: any) => {
+  const res = await withTenantSession(session, async (tx: any) => {
     const conditions: any[] = [
       eq(personnel.tenantId, session.user.tenantId),
       isNull(personnel.deletedAt),
@@ -95,6 +98,8 @@ export async function getPersonnelAction(filters?: PersonnelListFilters) {
     const pageSize = filters?.pageSize ?? 20;
     const offset = (page - 1) * pageSize;
 
+    const tSelect = perfStart("[getPersonnelAction] SELECT");
+    perfLog("[getPersonnelAction]", "Executing select query", Date.now());
     const items = await tx
       .select()
       .from(personnel)
@@ -102,11 +107,14 @@ export async function getPersonnelAction(filters?: PersonnelListFilters) {
       .orderBy(orderByDir((personnel as any)[orderByColumn] ?? personnel.createdAt))
       .limit(pageSize)
       .offset(offset);
+    perfEnd("[getPersonnelAction] SELECT", tSelect);
 
+    const tCount = perfStart("[getPersonnelAction] COUNT");
     const totalResult = await tx
       .select({ count: sql<number>`count(*)` })
       .from(personnel)
       .where(where);
+    perfEnd("[getPersonnelAction] COUNT", tCount);
 
     const total = Number(totalResult[0]?.count ?? 0);
 
@@ -118,13 +126,19 @@ export async function getPersonnelAction(filters?: PersonnelListFilters) {
       totalPages: Math.ceil(total / pageSize),
     };
   });
+
+  perfEnd("[getPersonnelAction]", tActionStart);
+  return res;
 }
 
 export async function getPersonnelByIdAction(id: string) {
+  const tActionStart = perfStart("[getPersonnelByIdAction]");
+  perfLog("[getPersonnelByIdAction]", `Fetching personnel ${id}`, Date.now());
   const session = await requireSession();
   await ensurePermission("personnel:read");
 
-  return await withTenantSession(session, async (tx: any) => {
+  const res = await withTenantSession(session, async (tx: any) => {
+    const tQuery = perfStart("[getPersonnelByIdAction] SQL");
     const item = await tx
       .select({
         id: personnel.id,
@@ -156,9 +170,13 @@ export async function getPersonnelByIdAction(id: string) {
         )
       )
       .limit(1);
+    perfEnd("[getPersonnelByIdAction] SQL", tQuery);
 
     return item[0] ?? null;
   });
+
+  perfEnd("[getPersonnelByIdAction]", tActionStart);
+  return res;
 }
 
 export async function createPersonnelAction(input: unknown) {
@@ -348,10 +366,13 @@ export async function activatePersonnelAction(id: string) {
 }
 
 export async function getPersonnelStatsAction() {
+  const tActionStart = perfStart("[getPersonnelStatsAction]");
+  perfLog("[getPersonnelStatsAction]", "Started", Date.now());
   const session = await requireSession();
   await ensurePermission("personnel:read");
 
-  return await withTenantSession(session, async (tx: any) => {
+  const res = await withTenantSession(session, async (tx: any) => {
+    const tQuery = perfStart("[getPersonnelStatsAction] SQL");
     const allPersonnel = await tx
       .select({
         isActive: personnel.isActive,
@@ -365,6 +386,7 @@ export async function getPersonnelStatsAction() {
         )
       )
       .groupBy(personnel.isActive);
+    perfEnd("[getPersonnelStatsAction] SQL", tQuery);
 
     let total = 0;
     let active = 0;
@@ -386,13 +408,19 @@ export async function getPersonnelStatsAction() {
 
     return { total, active, inactive, onShift, onLeave };
   });
+
+  perfEnd("[getPersonnelStatsAction]", tActionStart);
+  return res;
 }
 
 export async function getPersonnelTitlesAction() {
+  const tActionStart = perfStart("[getPersonnelTitlesAction]");
+  perfLog("[getPersonnelTitlesAction]", "Started", Date.now());
   const session = await requireSession();
   await ensurePermission("personnel:read");
 
-  return await withTenantSession(session, async (tx: any) => {
+  const res = await withTenantSession(session, async (tx: any) => {
+    const tQuery = perfStart("[getPersonnelTitlesAction] SQL");
     const titles = await tx
       .select()
       .from(personnelTitles)
@@ -403,9 +431,13 @@ export async function getPersonnelTitlesAction() {
         )
       )
       .orderBy(asc(personnelTitles.titleName));
+    perfEnd("[getPersonnelTitlesAction] SQL", tQuery);
 
     return titles;
   });
+
+  perfEnd("[getPersonnelTitlesAction]", tActionStart);
+  return res;
 }
 
 // ─── Machine Assignments ──────────────────────────────────────────────────────
@@ -500,10 +532,13 @@ export async function removeMachineAssignmentAction(assignmentId: string) {
 }
 
 export async function getPersonnelMachineAssignmentsAction(personnelId: string) {
+  const tActionStart = perfStart("[getPersonnelMachineAssignmentsAction]");
+  perfLog("[getPersonnelMachineAssignmentsAction]", `Fetching machine assignments for personnel ${personnelId}`, Date.now());
   const session = await requireSession();
   await ensurePermission("personnel:read");
 
-  return await withTenantSession(session, async (tx: any) => {
+  const res = await withTenantSession(session, async (tx: any) => {
+    const tQuery = perfStart("[getPersonnelMachineAssignmentsAction] SQL");
     const assignments = await tx
       .select()
       .from(personnelMachineAssignments)
@@ -514,18 +549,25 @@ export async function getPersonnelMachineAssignmentsAction(personnelId: string) 
         )
       )
       .orderBy(asc(personnelMachineAssignments.assignedAt));
+    perfEnd("[getPersonnelMachineAssignmentsAction] SQL", tQuery);
 
     return assignments;
   });
+
+  perfEnd("[getPersonnelMachineAssignmentsAction]", tActionStart);
+  return res;
 }
 
 export async function getMachinesForPersonnelAction(personnelId: string) {
+  const tActionStart = perfStart("[getMachinesForPersonnelAction]");
+  perfLog("[getMachinesForPersonnelAction]", `Fetching machines for personnel ${personnelId}`, Date.now());
   const session = await requireSession();
   await ensurePermission("personnel:read");
 
-  return await withTenantSession(session, async (tx: any) => {
+  const res = await withTenantSession(session, async (tx: any) => {
     // This joins machine assignments with machine details
     const { machines } = require("@repo/db");
+    const tQuery = perfStart("[getMachinesForPersonnelAction] SQL");
     const result = await tx
       .select({
         assignment: personnelMachineAssignments,
@@ -544,18 +586,25 @@ export async function getMachinesForPersonnelAction(personnelId: string) {
         )
       )
       .orderBy(asc(personnelMachineAssignments.assignedAt));
+    perfEnd("[getMachinesForPersonnelAction] SQL", tQuery);
 
     return result;
   });
+
+  perfEnd("[getMachinesForPersonnelAction]", tActionStart);
+  return res;
 }
 
 // ─── Machine Operators (bidirectional) ────────────────────────────────────────
 
 export async function getMachineOperatorsAction(machineId: string) {
+  const tActionStart = perfStart("[getMachineOperatorsAction]");
+  perfLog("[getMachineOperatorsAction]", `Fetching operators for machine ${machineId}`, Date.now());
   const session = await requireSession();
   await ensurePermission("machines:read");
 
-  return await withTenantSession(session, async (tx: any) => {
+  const res = await withTenantSession(session, async (tx: any) => {
+    const tQuery = perfStart("[getMachineOperatorsAction] SQL");
     const result = await tx
       .select({
         assignment: personnelMachineAssignments,
@@ -574,26 +623,37 @@ export async function getMachineOperatorsAction(machineId: string) {
         )
       )
       .orderBy(asc(personnelMachineAssignments.assignedAt));
+    perfEnd("[getMachineOperatorsAction] SQL", tQuery);
 
     return result;
   });
+
+  perfEnd("[getMachineOperatorsAction]", tActionStart);
+  return res;
 }
 
 // ─── Personnel Title CRUD ─────────────────────────────────────────────────────
 
 export async function getAllPersonnelTitlesAction() {
+  const tActionStart = perfStart("[getAllPersonnelTitlesAction]");
+  perfLog("[getAllPersonnelTitlesAction]", "Started", Date.now());
   const session = await requireSession();
   await ensurePermission("personnel:read");
 
-  return await withTenantSession(session, async (tx: any) => {
+  const res = await withTenantSession(session, async (tx: any) => {
+    const tQuery = perfStart("[getAllPersonnelTitlesAction] SQL");
     const titles = await tx
       .select()
       .from(personnelTitles)
       .where(eq(personnelTitles.tenantId, session.user.tenantId))
       .orderBy(asc(personnelTitles.titleName));
+    perfEnd("[getAllPersonnelTitlesAction] SQL", tQuery);
 
     return titles;
   });
+
+  perfEnd("[getAllPersonnelTitlesAction]", tActionStart);
+  return res;
 }
 
 export async function createPersonnelTitleAction(titleName: string) {

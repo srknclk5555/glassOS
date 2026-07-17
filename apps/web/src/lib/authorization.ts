@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { requireSession } from "./session";
 import { db, roles, users } from "@repo/db";
 import { eq } from "drizzle-orm";
+import { perfLog, perfStart, perfEnd } from "@/lib/perf";
 
 export type Permission = "tenants:read" | "tenants:write" | "factories:read" | "factories:write" | "users:read" | "users:write" | "machines:read" | "machines:write" | "stations:read" | "stations:write" | "personnel:read" | "personnel:write";
 
@@ -43,21 +44,21 @@ export const getUserRoleName = cache(async (userId: string) => {
 });
 
 export const ensurePermission = cache(async (permission: Permission) => {
-  const tStart = Date.now();
-  console.log(`[PERF_LOG] [${tStart}] [5. Permission] - Starting check for: ${permission}`);
+  const tStart = perfStart(`[5. Permission] ${permission}`);
+  perfLog(`[5. Permission] ${permission}`, "Starting check", Date.now());
   const session = await requireSession();
   
-  console.log(`[PERF_LOG] [${Date.now()}] [4. Tenant çözümü] - Tenant ID: ${session.user.tenantId}`);
+  perfLog("[4. Tenant çözümü]", `Tenant ID: ${session.user.tenantId}`, Date.now());
   
   const roleName = session.user.role ?? "";
   const allowed = permissionMap[roleName] ?? [];
 
   if (!allowed.includes(permission)) {
-    console.log(`[PERF_LOG] [${Date.now()}] [5. Permission] - FAILED`);
+    perfLog(`[5. Permission] ${permission}`, "FAILED - redirecting", Date.now());
     redirect("/dashboard");
   }
 
-  console.log(`[PERF_LOG] [${Date.now()}] [5. Permission] - Completed (Success)`);
+  perfEnd(`[5. Permission] ${permission}`, tStart);
   return session;
 });
 

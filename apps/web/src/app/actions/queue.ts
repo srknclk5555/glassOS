@@ -16,6 +16,7 @@ import {
 } from "@repo/db";
 import { requireSession } from "@/lib/session";
 import { withTenantSession } from "@/lib/dbSession";
+import { perfLog, perfStart, perfEnd } from "@/lib/perf";
 
 /* ─── Types ──────────────────────────────────────────────────── */
 
@@ -116,12 +117,15 @@ export interface QueueData {
 /* ─── Server Actions ─────────────────────────────────────────── */
 
 export async function getQueueData(): Promise<QueueData> {
+  const tActionStart = perfStart("[getQueueData]");
+  perfLog("[getQueueData]", "Started", Date.now());
   const session = await requireSession();
   const tenantId = session.user.tenantId;
   const userId = session.user.id;
 
-  return withTenantSession(session, async (tx: any) => {
+  const res = await withTenantSession(session, async (tx: any) => {
     /* ── 1. Stations ── */
+    const tStation = perfStart("[getQueueData] 1. Stations");
     const stationRows = await tx
       .select({
         id: stations.id,
@@ -133,8 +137,10 @@ export async function getQueueData(): Promise<QueueData> {
         and(eq(stations.tenantId, tenantId), eq(stations.isActive, true))
       )
       .orderBy(asc(stations.sortOrder));
+    perfEnd("[getQueueData] 1. Stations", tStation);
 
     /* ── 2. Machines ── */
+    const tMachine = perfStart("[getQueueData] 2. Machines");
     const machineRows = await tx
       .select({
         id: machines.id,
@@ -146,8 +152,10 @@ export async function getQueueData(): Promise<QueueData> {
         and(eq(machines.tenantId, tenantId), eq(machines.isActive, true))
       )
       .orderBy(asc(machines.name));
+    perfEnd("[getQueueData] 2. Machines", tMachine);
 
     /* ── 3. Operations ── */
+    const tOperation = perfStart("[getQueueData] 3. Operations");
     const operationRows = await tx
       .select({
         operationCode: productionOperations.operationCode,
@@ -161,8 +169,10 @@ export async function getQueueData(): Promise<QueueData> {
         )
       )
       .orderBy(asc(productionOperations.sortOrder));
+    perfEnd("[getQueueData] 3. Operations", tOperation);
 
     /* ── 4. Queue jobs (waiting + assigned) ── */
+    const tQueue = perfStart("[getQueueData] 4. Queue JOIN");
     const queueJoin = await tx
       .select({
         queueItemId: productionQueueItems.id,
@@ -195,8 +205,10 @@ export async function getQueueData(): Promise<QueueData> {
         )
       )
       .orderBy(asc(productionQueueItems.priority));
+    perfEnd("[getQueueData] 4. Queue JOIN", tQueue);
 
     /* Enrich with order + customer info */
+    const tEnrich = perfStart("[getQueueData] 4b. Enrich queries");
     const orderLineIds = [
       ...new Set(queueJoin.map((j: any) => j.orderLineId)),
     ];
@@ -233,6 +245,7 @@ export async function getQueueData(): Promise<QueueData> {
           .from(customers)
           .where(sql`${customers.id} = ANY(${customerIds})`)
       : [];
+    perfEnd("[getQueueData] 4b. Enrich queries", tEnrich);
 
     const orderLineMap: Map<string, { id: string; quantity: string; completedQuantity: number; orderId: string }> = new Map(
       orderLineRows.map((r: any) => [r.id, r])
@@ -271,6 +284,7 @@ export async function getQueueData(): Promise<QueueData> {
     });
 
     /* ── 5. Active work for current user ── */
+    const tActive = perfStart("[getQueueData] 5. Active work");
     const activeProdOrders = await tx
       .select({
         id: productionOrders.id,
@@ -301,6 +315,7 @@ export async function getQueueData(): Promise<QueueData> {
       const quantity = ol ? Number(ol.quantity) : 0;
       const completed = ol ? Number(ol.completedQuantity) : 0;
 
+      const tEvent = perfStart("[getQueueData] 5b. Event query");
       const startEvent = await tx
         .select({ timestamp: productionEvents.createdAt })
         .from(productionEvents)
@@ -312,6 +327,7 @@ export async function getQueueData(): Promise<QueueData> {
         )
         .orderBy(asc(productionEvents.createdAt))
         .limit(1);
+      perfEnd("[getQueueData] 5b. Event query", tEvent);
 
       const startedAt = startEvent[0]?.timestamp ?? a.createdAt;
       const elapsedMs = Date.now() - new Date(startedAt).getTime();
@@ -333,8 +349,10 @@ export async function getQueueData(): Promise<QueueData> {
         status: a.currentStatus,
       };
     }
+    perfEnd("[getQueueData] 5. Active work", tActive);
 
     /* ── 6. Summary ── */
+    const tSummary = perfStart("[getQueueData] 6. Summary queries");
     const waitingJobs = jobs.filter(
       (j) => j.status === "waiting"
     ).length;
@@ -381,6 +399,7 @@ export async function getQueueData(): Promise<QueueData> {
       );
     const avgMs = Number(avgTimeQuery[0]?.avg ?? 0);
     const avgQueueTimeMinutes = Math.round(avgMs / 60_000);
+    perfEnd("[getQueueData] 6. Summary queries", tSummary);
 
     return {
       jobs,
@@ -396,19 +415,27 @@ export async function getQueueData(): Promise<QueueData> {
       },
     };
   });
+
+  perfEnd("[getQueueData]", tActionStart);
+  return res;
 }
 
 export async function takeJobAction(productionOrderId: string) {
+  const tActionStart = perfStart("[takeJobAction]");
+  perfLog("[takeJobAction]", `Taking job ${productionOrderId}`, Date.now());
   const session = await requireSession();
-  return withTenantSession(session, async (tx: any) => {
+  const res = await withTenantSession(session, async (tx: any) => {
+    const tQuery = perfStart("[takeJobAction] SELECT");
     const prod = await tx
       .select()
       .from(productionOrders)
       .where(eq(productionOrders.id, productionOrderId))
       .limit(1)
       .then((r: any[]) => r[0]);
+    perfEnd("[takeJobAction] SELECT", tQuery);
     if (!prod) throw new Error("Production order not found");
 
+    const tUpdate = perfStart("[takeJobAction] UPDATE+INSERT");
     await tx
       .update(productionOrders)
       .set({
@@ -426,15 +453,22 @@ export async function takeJobAction(productionOrderId: string) {
       toOperation: prod.currentOperation,
       stationId: prod.currentStationId,
     });
+    perfEnd("[takeJobAction] UPDATE+INSERT", tUpdate);
 
     revalidatePath("/queue");
     return { ok: true };
   });
+
+  perfEnd("[takeJobAction]", tActionStart);
+  return res;
 }
 
 export async function pauseJobAction(productionOrderId: string) {
+  const tActionStart = perfStart("[pauseJobAction]");
+  perfLog("[pauseJobAction]", `Pausing job ${productionOrderId}`, Date.now());
   const session = await requireSession();
-  return withTenantSession(session, async (tx: any) => {
+  const res = await withTenantSession(session, async (tx: any) => {
+    const tQuery = perfStart("[pauseJobAction] UPDATE+INSERT");
     await tx
       .update(productionOrders)
       .set({
@@ -450,15 +484,22 @@ export async function pauseJobAction(productionOrderId: string) {
       eventType: "paused",
       stationId: null,
     });
+    perfEnd("[pauseJobAction] UPDATE+INSERT", tQuery);
 
     revalidatePath("/queue");
     return { ok: true };
   });
+
+  perfEnd("[pauseJobAction]", tActionStart);
+  return res;
 }
 
 export async function completeJobAction(productionOrderId: string) {
+  const tActionStart = perfStart("[completeJobAction]");
+  perfLog("[completeJobAction]", `Completing job ${productionOrderId}`, Date.now());
   const session = await requireSession();
-  return withTenantSession(session, async (tx: any) => {
+  const res = await withTenantSession(session, async (tx: any) => {
+    const tQuery = perfStart("[completeJobAction] UPDATE+INSERT");
     await tx
       .update(productionOrders)
       .set({
@@ -486,17 +527,24 @@ export async function completeJobAction(productionOrderId: string) {
           sql`${productionQueueItems.status} != 'done'`
         )
       );
+    perfEnd("[completeJobAction] UPDATE+INSERT", tQuery);
 
     revalidatePath("/queue");
     return { ok: true };
   });
+
+  perfEnd("[completeJobAction]", tActionStart);
+  return res;
 }
 
 export async function getJobDetailAction(
   productionOrderId: string
 ): Promise<QueueDetail | null> {
+  const tActionStart = perfStart("[getJobDetailAction]");
+  perfLog("[getJobDetailAction]", `Fetching detail for ${productionOrderId}`, Date.now());
   const session = await requireSession();
-  return withTenantSession(session, async (tx: any) => {
+  const res = await withTenantSession(session, async (tx: any) => {
+    const tQuery = perfStart("[getJobDetailAction] 1. Prod Order");
     const prod = await tx
       .select({
         id: productionOrders.id,
@@ -515,9 +563,11 @@ export async function getJobDetailAction(
       .where(eq(productionOrders.id, productionOrderId))
       .limit(1)
       .then((r: any[]) => r[0]);
+    perfEnd("[getJobDetailAction] 1. Prod Order", tQuery);
 
     if (!prod) return null;
 
+    const tOrder = perfStart("[getJobDetailAction] 2. Order+Customer");
     const ol = await tx
       .select({
         quantity: orderLines.quantity,
@@ -554,7 +604,9 @@ export async function getJobDetailAction(
           .limit(1)
           .then((r: any[]) => r[0]?.name ?? "")
       : "";
+    perfEnd("[getJobDetailAction] 2. Order+Customer", tOrder);
 
+    const tTimeline = perfStart("[getJobDetailAction] 3. Timeline");
     const timeline = await tx
       .select({
         eventType: productionEvents.eventType,
@@ -565,6 +617,7 @@ export async function getJobDetailAction(
       .from(productionEvents)
       .where(eq(productionEvents.productionOrderId, productionOrderId))
       .orderBy(asc(productionEvents.createdAt));
+    perfEnd("[getJobDetailAction] 3. Timeline", tTimeline);
 
     const areaM2 =
       Number(prod.widthMm) * Number(prod.heightMm) / 1_000_000;
@@ -593,4 +646,7 @@ export async function getJobDetailAction(
       })),
     };
   });
+
+  perfEnd("[getJobDetailAction]", tActionStart);
+  return res;
 }

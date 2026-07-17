@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider, I18nProvider } from "@repo/ui";
 import { SessionBridge } from "../providers/session-bridge";
 import { tr, en } from "../i18n";
+import { DEBUG_PERF, perfLog, perfStart, perfEnd } from "@/lib/perf";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -24,8 +25,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const tRenderStart = Date.now();
-  console.log(`[PERF_LOG] [${tRenderStart}] [9. React Server Component render başlangıcı]`);
+  const tRenderStart = perfStart("[9. React Server Component render]");
+  perfLog("[9. RSC render]", "RootLayout render başlangıcı", Date.now());
   
   const res = (
     <html lang="tr" className="dark" suppressHydrationWarning>
@@ -39,7 +40,8 @@ export default function RootLayout({
     </html>
   );
 
-  console.log(`[PERF_LOG] [${Date.now()}] [10. React render bitişi] - Rendered RootLayout (Duration: ${Date.now() - tRenderStart}ms)`);
-  console.log(`[PERF_LOG] [${Date.now()}] [11. HTML response gönderildi] - Sending HTML`);
+  perfEnd("[9. React Server Component render]", tRenderStart);
+  perfLog("[10. React render bitişi]", `Rendered RootLayout`, Date.now());
+  perfLog("[11. HTML response]", "Sending HTML response", Date.now());
   return res;
 }

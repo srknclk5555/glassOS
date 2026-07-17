@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next";
 import type { Session } from "next-auth";
 import { authOptions } from "./auth";
 import { withTenantSession } from "./dbSession";
+import { DEBUG_PERF, perfLog, perfStart, perfEnd } from "@/lib/perf";
 
 export const getSession = cache(async () => {
   const session = await getServerSession(authOptions);
@@ -23,10 +24,9 @@ export type AuthenticatedSession = Session & {
 };
 
 export const requireSession = cache(async () => {
-  const tStart = Date.now();
-  console.log(`[PERF_LOG] [${tStart}] [3. NextAuth Session] - Starting`);
+  const tStart = perfStart("[3. NextAuth Session]");
   const session = (await getServerSession(authOptions)) as Session | null;
-  console.log(`[PERF_LOG] [${Date.now()}] [3. NextAuth Session] - Completed (Duration: ${Date.now() - tStart}ms)`);
+  perfEnd("[3. NextAuth Session]", tStart);
 
   if (!session || !session.user || typeof (session.user as any).id !== "string") {
     throw new Error("Unauthorized");
