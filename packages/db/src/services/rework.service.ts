@@ -1,10 +1,10 @@
-import { ReworkRepository } from "../repositories/rework.repository.js";
-import { ProductionRepository } from "../repositories/production.repository.js";
-import { OrderLineRepository } from "../repositories/order-line.repository.js";
-import { OrderRepository } from "../repositories/order.repository.js";
-import { withTenantSession } from "../db/transactions.js";
+import { ReworkRepository } from "../repositories/rework.repository";
+import { ProductionRepository } from "../repositories/production.repository";
+import { OrderLineRepository } from "../repositories/order-line.repository";
+import { OrderRepository } from "../repositories/order.repository";
+import { withTenantSession } from "../db/transactions";
 
-import type { ReworkCreatedEvent, FireDepotAssignedEvent, ReworkMergedEvent, EventPublisher } from "./events.js";
+import type { ReworkCreatedEvent, FireDepotAssignedEvent, ReworkMergedEvent, EventPublisher } from "./events";
 
 export class ReworkService {
   constructor(

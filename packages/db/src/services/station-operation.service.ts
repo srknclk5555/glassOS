@@ -1,7 +1,7 @@
-import { ProductionRepository } from "../repositories/production.repository.js";
-import { OrderLineRepository } from "../repositories/order-line.repository.js";
-import { OrderRepository } from "../repositories/order.repository.js";
-import { withTenantSession } from "../db/transactions.js";
+import { ProductionRepository } from "../repositories/production.repository";
+import { OrderLineRepository } from "../repositories/order-line.repository";
+import { OrderRepository } from "../repositories/order.repository";
+import { withTenantSession } from "../db/transactions";
 
 import type {
   GrindingStartedEvent,
@@ -13,7 +13,7 @@ import type {
   FurnaceCapacityCalculatedEvent,
   LowEValidationFailedEvent,
   EventPublisher,
-} from "./events.js";
+} from "./events";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 

@@ -1,24 +1,7 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
-import fs from 'fs';
-import path from 'path';
-
-const _authLogPath = (() => {
-  try {
-    const d = path.join(process.cwd(), '.tmp');
-    fs.mkdirSync(d, { recursive: true });
-    return path.join(d, 'auth-debug.log');
-  } catch (e) {
-    return path.join('.tmp', 'auth-debug.log');
-  }
-})();
-
-try { fs.appendFileSync(_authLogPath, new Date().toISOString() + ' auth module loaded\n'); } catch (e) {}
-import { db } from "@repo/db";
-import { auditLogs, roles } from "@repo/db";
-import { eq, sql } from "drizzle-orm";
-import { users } from "@repo/db";
+import { db, sql } from "@repo/db";
 import { loginSchema } from "@repo/types";
 import type { NextAuthOptions } from "next-auth";
 
@@ -39,33 +22,38 @@ export const authOptions: NextAuthOptions = {
         if (!parsed.success) return null;
 
         const { email, password } = parsed.data;
-        const userRows = await db.transaction(async (tx) => {
-          await tx.execute(sql`SELECT set_config('app.current_user_role', 'super_admin', true);`);
-          return tx
-            .select({
-              id: users.id,
-              name: users.name,
-              email: users.email,
-              tenantId: users.tenantId,
-              factoryId: users.factoryId,
-              selectedFactoryId: users.selectedFactoryId,
-              roleId: users.roleId,
-              role: roles.name,
-              passwordHash: users.passwordHash,
-              active: users.active,
-              deletedAt: users.deletedAt,
-            })
-            .from(users)
-            .innerJoin(roles, eq(users.roleId, roles.id))
-            .where(eq(users.email, email))
-            .limit(1);
-        });
 
-        const user = userRows[0];
-        if (!user || !user.active || user.deletedAt) return null;
+        // Use SECURITY DEFINER function — glassos_app has EXECUTE only on this function
+        // Bypasses RLS without needing owner credentials.
+        const result = await db.execute(sql`
+          SELECT * FROM auth_lookup_user(${email})
+        `);
+        const userRow = result[0] as Record<string, any> | undefined;
+        if (!userRow) return null;
+
+        // Map PostgreSQL snake_case → camelCase
+        const user = {
+          id: userRow.id as string,
+          name: userRow.name as string,
+          email: userRow.email as string,
+          tenantId: userRow.tenant_id as string,
+          factoryId: userRow.factory_id as string | null,
+          selectedFactoryId: userRow.selected_factory_id as string | null,
+          roleId: userRow.role_id as string,
+          role: userRow.role_name as string,
+          passwordHash: userRow.password_hash as string,
+          isActive: userRow.is_active as boolean,
+          deletedAt: userRow.deleted_at as string | null,
+        };
+
+        if (!user || !user.isActive || user.deletedAt) return null;
 
         const passwordMatches = await bcrypt.compare(password, user.passwordHash);
         if (!passwordMatches) return null;
+
+        // Normalize role name: "Tenant Admin" → "tenant_admin"
+        // DB stores display names, but ROLE_NAV_MAP uses machine names
+        const normalizedRole = user.role.toLowerCase().replace(/\s+/g, '_');
 
         return {
           id: user.id,
@@ -75,7 +63,7 @@ export const authOptions: NextAuthOptions = {
           factoryId: user.factoryId ?? undefined,
           selectedFactoryId: user.selectedFactoryId ?? undefined,
           roleId: user.roleId,
-          role: user.role,
+          role: normalizedRole,
         };
       },
     }),

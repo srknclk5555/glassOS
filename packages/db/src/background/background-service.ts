@@ -1,11 +1,11 @@
-import { BaseJob, generateJobId, type Job, type JobOptions } from "./job.js";
-import { InMemoryJobQueue, type IJobQueue } from "./job-queue.js";
-import { InMemoryJobRegistry, type IJobRegistry } from "./job-registry.js";
+import { BaseJob, generateJobId, type Job, type JobOptions } from "./job";
+import { InMemoryJobQueue, type IJobQueue } from "./job-queue";
+import { InMemoryJobRegistry, type IJobRegistry } from "./job-registry";
 import {
   LocalJobRunner,
   type IJobRunner,
   type JobRunnerCallbacks,
-} from "./job-runner.js";
+} from "./job-runner";
 
 // ─── Interface ───────────────────────────────────────────────────────────────
 

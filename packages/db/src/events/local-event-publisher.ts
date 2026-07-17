@@ -1,4 +1,4 @@
-import type { DomainEvent, EventPublisher } from "../services/events.js";
+import type { DomainEvent, EventPublisher } from "../services/events";
 
 /**
  * LocalEventPublisher — executes event handlers synchronously in-process.

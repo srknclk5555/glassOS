@@ -23,7 +23,10 @@ export type AuthenticatedSession = Session & {
 };
 
 export const requireSession = cache(async () => {
+  const tStart = Date.now();
+  console.log(`[PERF_LOG] [${tStart}] [3. NextAuth Session] - Starting`);
   const session = (await getServerSession(authOptions)) as Session | null;
+  console.log(`[PERF_LOG] [${Date.now()}] [3. NextAuth Session] - Completed (Duration: ${Date.now() - tStart}ms)`);
 
   if (!session || !session.user || typeof (session.user as any).id !== "string") {
     throw new Error("Unauthorized");

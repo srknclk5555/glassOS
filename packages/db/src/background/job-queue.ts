@@ -1,4 +1,4 @@
-import { type Job, PRIORITY_ORDER } from "./job.js";
+import { type Job, PRIORITY_ORDER } from "./job";
 
 // ─── Interface ───────────────────────────────────────────────────────────────
 

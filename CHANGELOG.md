@@ -2,6 +2,139 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased] — Sprint 2.8.1 — Personnel Management Module
+
+### Added
+
+- **Personnel Management CRUD** — `personnel` table (ULID PK, tenant-scoped, RLS FORCE), Drizzle schema, server actions (`createPersonnelAction`, `updatePersonnelAction`, `togglePersonnelActiveAction`, `getPersonnelAction`, `getPersonnelByIdAction`)
+- **Machine-Personnel Assignments** — `machinePersonnelAssignments` junction table, `assignMachineAction`, `removeMachineAssignmentAction`, bidirectional view (personnel detail + machine detail)
+- **UI Page** — `/personnel` DataGrid with summary cards (Total/Active/Inactive/On Shift), search, role filter, status filter, sort
+- **Detail Drawer** — Personel Detayı with Genel Bilgiler tab (name, role, phone, email, hire date, notes, system access) and Atamalar tab (assigned machines, Makine Ata dialog, Atamayı Kaldır)
+- **Activate/Deactivate** — confirmation dialog toggle with status badge updates
+- **Zod Validation** — `createPersonnelSchema` / `updatePersonnelSchema` types, `preparePersonnelInput()` empty string → null conversion for optional fields
+- **i18n** — All personnel labels translated (TR/EN)
+
+### Changed
+
+- **Authorization** — `personnel:read`, `personnel:write` added to permission map
+- **Server Action Pattern** — `preparePersonnelInput()` utility established as pattern for Zod optional field handling
+
+### Fixed
+
+- **Empty string validation** — Zod `z.string().length(26)` rejected empty titleId; converted to null before parse
+
+## [Unreleased] — Sprint 2.8.1A — Personnel Titles Management Fix
+
+### Added
+
+- **Title Management CRUD** — 5 new server actions (`getAllPersonnelTitlesAction`, `createPersonnelTitleAction`, `updatePersonnelTitleAction`, `deactivatePersonnelTitleAction`, `activatePersonnelTitleAction`) with `requireSession()` + `ensurePermission()` + `withTenantSession()`
+- **Title Management Dialog** (`personnel-title-dialog.tsx`) — full CRUD UI: inline add, inline edit, active/inactive toggle with confirmation dialog, empty state handling
+- **Personnel Create/Edit Dialog** — `onAddTitle` callback prop with "+ Yeni Ünvan Ekle" option in title dropdown; empty state with dashed border box when no titles exist
+- **"Ünvanları Yönet" button** — personel sayfası header'da, variant="outline" with User icon
+- **Title display in DataGrid** — `fullName` column shows title name below person name
+- **Title display in Detail Drawer** — `titleName` field in General Information tab
+- **i18n** — 11 new keys (titles, manageTitles, addTitle, editTitle, titleName, titleActive, titleInactive, noTitlesDefined, confirmDeactivateTitle, confirmActivateTitle) — TR/EN
+
+### Changed
+
+- **`getPersonnelByIdAction`** — now uses explicit `.select()` with LEFT JOIN on `personnelTitles` to include `titleName`
+
+### Fixed
+
+- **Empty title dropdown** — when creating/editing personnel, title dropdown was empty because no UI existed to manage `personnel_titles` table data
+
+## [Unreleased] — Sprint 2.8.0 — Machine Management Module
+
+### Added
+
+- **Machine Management CRUD** — `machines` table (ULID PK, tenant-scoped, RLS FORCE), Drizzle schema, server actions (`createMachineAction`, `updateMachineAction`, `deleteMachineAction`, `getMachinesAction`, `getMachineByIdAction`)
+- **UI Page** — `/machines` DataGrid with summary cards (Total/Active/Maintenance/Idle), search, type filter, status filter, sort, pagination
+- **Detail Drawer** — Makine Detayı with Genel Bilgiler, Satın Alma Bilgileri, Atanmış Operatörler (with Operatörü Çıkar), Audit sections
+- **Machine-Personnel Integration** — bidirectional assignment display in machine detail drawer
+- **Zod Validation** — `createMachineSchema` / `updateMachineSchema` types
+- **i18n** — All machine labels translated (TR/EN)
+
+### Changed
+
+- **Authorization** — `machine:read`, `machine:write` added to permission map
+
+## [Unreleased] — Sprint 2.7.0
+
+### Added
+
+- **UI Foundation (`@repo/ui`)** — comprehensive design system and component library for GlassOS, built with React 19, Radix UI primitives, TailwindCSS v4, and class-variance-authority.
+
+- **Theme System** (`src/styles.css`):
+  - CSS-first design tokens via Tailwind v4 `@theme` directives
+  - Dark mode (default) and light mode (`.light` class) with CSS variable overrides
+  - Full color system: surfaces, brand, text (primary/secondary/muted), status (success/warning/danger/info), queue states, station states, priority levels
+  - Shadow system (xs→xl), scrollbar styling, focus-visible rings, color-scheme support
+
+- **`cn()` utility** (`src/lib/cn.ts`): clsx + tailwind-merge class merging helper
+
+- **Primitive UI Components** (`src/components/ui/`):
+  - `Button` — 5 variants (primary/secondary/ghost/destructive/outline), 4 sizes (sm/md/lg/icon)
+  - `Input`, `Textarea` — form controls with icon slot, error display, aria support
+  - `Select` — Radix-based dropdown with animated trigger/content/item
+  - `Checkbox`, `Switch` — Radix-based toggle controls with animated indicators
+  - `Badge` — 7 variants (default/secondary/success/warning/danger/info/outline)
+  - `Card` — Card + Header/Title/Description/Content/Footer composition
+  - `Skeleton` — pulse-animated loading placeholder
+  - `EmptyState`, `LoadingState` — feedback components with icon/spinner
+  - `Avatar`, `Progress`, `StatusIndicator` — visual data components
+  - `Breadcrumb` — navigation path with separator, current page indicator
+  - `SearchBox` — search input with icon and onChange/onSearch callbacks
+
+- **Overlay & Navigation Components** (`src/components/ui/`):
+  - `Dialog` — Radix-based modal with animated overlay/content/header/footer
+  - `Drawer` — mobile bottom panel via Radix Dialog with drag handle
+  - `Sheet` — slide-in panel (4 sides: left/right/top/bottom)
+  - `Tabs` — Radix-based tabbed navigation with animated content
+  - `DropdownMenu` — Radix-based full suite (items, separator, label, checkbox/radio)
+  - `Tooltip` — Radix-based with animated appearance
+  - `Toast` — Radix-based notification system with 4 variants, close/action buttons
+  - `CommandPalette` — Radix Dialog-based command search with groups/items
+
+- **Domain Badges** (`src/components/ui/`):
+  - `GlassStatusBadge` — idle/running/paused/maintenance/offline/setup
+  - `PriorityBadge` — critical/high/normal/low
+  - `ProductionStatusBadge` — pending/queued/running/paused/completed/cancelled/on-hold
+  - `FactoryBadge` — factory name + location indicator
+
+- **DataGrid** (`src/components/data-grid/`):
+  - `DataGrid<T>` — generic enterprise table with sorting, sticky header, pagination, loading/empty states, row click/actions, responsive scroll
+
+- **Layout System** (`src/components/layout/`):
+  - `Sidebar` — collapsible (60px/240px) with navigation items, active state, footer, collapse toggle
+  - `TopBar` — breadcrumbs, search, right-side children slot
+  - `Shell` — full app shell: desktop sidebar, mobile drawer (Sheet), topbar, scrollable content
+  - `Notifications` — bell icon with unread count badge, dropdown list, mark-as-read
+  - `Profile` — avatar + name dropdown with profile/settings/logout
+  - `FactorySwitcher` — dropdown with factory list, active indicator, location
+  - `ThemeSwitcher` — sun/moon toggle for dark/light mode
+
+- **Providers** (`src/components/providers/`):
+  - `ThemeProvider` + `useTheme()` — manages dark/light state, persists to localStorage, prevents flash
+
+- **Barrel export** — `src/index.ts` exports all ~40+ components, types, and utilities
+
+- **Documentation** — `UI_ARCHITECTURE.md` covering design principles, component hierarchy, layout hierarchy, theme tokens, folder structure, naming conventions, tech stack, accessibility, DataGrid architecture, future page strategy
+
+### Dependencies
+
+- `@radix-ui/react-avatar`, `@radix-ui/react-checkbox`, `@radix-ui/react-dialog`, `@radix-ui/react-dropdown-menu`, `@radix-ui/react-label`, `@radix-ui/react-popover`, `@radix-ui/react-scroll-area`, `@radix-ui/react-select`, `@radix-ui/react-switch`, `@radix-ui/react-tabs`, `@radix-ui/react-toast`, `@radix-ui/react-tooltip`, `@radix-ui/react-slot` (12 Radix packages)
+- `class-variance-authority`, `clsx`, `tailwind-merge`, `lucide-react`
+- `tailwindcss` v4 with `@tailwindcss/postcss`
+
+### Architecture
+
+- **Interface-first layout**: Shell provides responsive layout (sidebar + topbar + content), mobile uses Sheet-based drawer
+- **Dark-first**: All tokens default to dark theme, light mode via `.light` class override
+- **CSS variable theming**: Tailwind v4 `@theme` directives for runtime theme switching
+- **Accessibility by default**: All components built on Radix UI primitives (WAI-ARIA compliant)
+- **Zero backend coupling**: Components consume props only — no API calls, no state management tied to backend
+- **TypeScript strict**: All components typed with full generics support (DataGrid, Column definitions)
+
 ## [Unreleased] — Sprint 2.6.6
 
 ### Added

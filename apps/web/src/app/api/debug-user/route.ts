@@ -10,7 +10,7 @@ export async function GET() {
       passwordHash: users.passwordHash,
       tenantId: users.tenantId,
       roleId: users.roleId,
-      active: users.active,
+      isActive: users.isActive,
       factoryId: users.factoryId,
     }).from(users).where(eq(users.email, 'tenant-admin@example.com')).limit(1);
 

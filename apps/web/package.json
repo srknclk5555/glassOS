@@ -15,6 +15,7 @@
     "@repo/db": "*",
     "@repo/types": "*",
     "@repo/ui": "*",
+    "@tailwindcss/postcss": "^4.1.4",
     "@types/bcryptjs": "^2.4.6",
     "bcryptjs": "^3.0.3",
     "lucide-react": "^0.473.0",
@@ -24,6 +25,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.54.2",
+    "tailwindcss": "^4.1.4",
     "zod": "^3.24.1"
   },
   "devDependencies": {

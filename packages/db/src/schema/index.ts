@@ -32,5 +32,15 @@ export * from "./rework";         // rework_orders, fire_inventory_items, rework
 // ─── Factory Configuration (Sprint 2.4.2) ────────────────────────────────────
 export * from "./factory-config"; // factory_configurations, grinding_profiles, trim_profiles, remnant_thresholds
 
+// ─── Settings (Factory-level operational settings) ────────────────────────────
+export * from "./settings";       // settings
+
+// ─── Delivery Points (Customer delivery addresses) ────────────────────────────
+export * from "./delivery-points"; // delivery_points
+
+// ─── Material Categories & Packaging ─────────────────────────────────────────
+export * from "./material-categories";  // material_categories
+export * from "./material-packagings";  // material_packagings
+
 // ─── Audit Log (Sprint 2.4.2) ────────────────────────────────────────────────
 export * from "./audit-log";      // audit_logs

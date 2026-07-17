@@ -31,28 +31,44 @@ export default async function FactorySettingsPage() {
 
   const existingSettings = await db.query.settings.findFirst({ where: eq(settings.factoryId, factoryId) });
 
-  const normalizeQrType = (value: string): "QR" | "CODE128" =>
+  const normalizeQrType = (value: string | null): "QR" | "CODE128" =>
     value === "CODE128" ? "CODE128" : "QR";
 
-  const normalizedSettings =
+  const normalizedSettings:
+    | {
+        id: string;
+        factoryId: string;
+        tolerances: { enToleranceMm: number; boyToleranceMm: number };
+        trimMm: string;
+        qrType: "QR" | "CODE128";
+        shiftSettings: { name: string; start: string; end: string }[];
+        costSettings: { electricityUnitCost: number; gasUnitCost: number; laborHourCost: number };
+        notificationSettings: { whatsappEnabled: boolean; smsEnabled: boolean; emailEnabled: boolean };
+        logoUrl?: string | null;
+      }
+    | undefined =
     existingSettings === undefined
       ? undefined
       : {
           id: existingSettings.id,
           factoryId: existingSettings.factoryId,
-          tolerances: existingSettings.tolerances,
-          trimMm: existingSettings.trimMm,
+          tolerances: existingSettings.tolerances as { enToleranceMm: number; boyToleranceMm: number },
+          trimMm: existingSettings.trimMm ?? "",
           qrType: normalizeQrType(existingSettings.qrType),
-          shiftSettings: existingSettings.shiftSettings ?? [
+          shiftSettings: (existingSettings.shiftSettings as { name: string; start: string; end: string }[]) ?? [
             { name: "Shift 1", start: "08:00", end: "16:00" },
             { name: "Shift 2", start: "16:00", end: "00:00" },
           ],
-          costSettings: existingSettings.costSettings ?? {
-            electricityUnitCost: 0,
-            gasUnitCost: 0,
-            laborHourCost: 0,
+          costSettings: (existingSettings.costSettings as {
+            electricityUnitCost: number;
+            gasUnitCost: number;
+            laborHourCost: number;
+          }) ?? { electricityUnitCost: 0, gasUnitCost: 0, laborHourCost: 0 },
+          notificationSettings: existingSettings.notificationSettings as {
+            whatsappEnabled: boolean;
+            smsEnabled: boolean;
+            emailEnabled: boolean;
           },
-          notificationSettings: existingSettings.notificationSettings,
           logoUrl: existingSettings.logoUrl ?? undefined,
         };
 

@@ -44,11 +44,11 @@ export async function createTenantAction(input: unknown) {
 
     await tx.insert(auditLogs).values({
       tenantId: createdTenant.id,
-      actorId: session.user.id,
-      entityType: "tenant",
-      entityId: createdTenant.id,
-      action: "create",
-      details: { name: parsed.data.name },
+      changedBy: session.user.id,
+      tableName: "tenants",
+      recordId: createdTenant.id,
+      operation: "create",
+      afterValue: { name: parsed.data.name },
     });
 
     revalidatePath("/tenants");
@@ -86,11 +86,11 @@ export async function createFactoryAction(input: unknown) {
 
     await tx.insert(auditLogs).values({
       tenantId,
-      actorId: session.user.id,
-      entityType: "factory",
-      entityId: createdFactory.id,
-      action: "create",
-      details: { name: parsed.data.name },
+      changedBy: session.user.id,
+      tableName: "factories",
+      recordId: createdFactory.id,
+      operation: "create",
+      afterValue: { name: parsed.data.name },
     });
 
     revalidatePath("/factories");
@@ -119,11 +119,11 @@ export async function updateFactoryAction(input: unknown) {
       .set({
         name: parsed.data.name,
         address: parsed.data.address ?? null,
-        active: parsed.data.active ?? true,
+        isActive: parsed.data.active ?? true,
         updatedAt: new Date(),
       })
       .where(condition)
-      .returning({ id: factories.id, name: factories.name, address: factories.address, active: factories.active });
+      .returning({ id: factories.id, name: factories.name, address: factories.address, isActive: factories.isActive });
 
     const updatedFactory = updatedRows[0];
     if (!updatedFactory) {
@@ -132,11 +132,11 @@ export async function updateFactoryAction(input: unknown) {
 
     await tx.insert(auditLogs).values({
       tenantId: session.user.tenantId,
-      actorId: session.user.id,
-      entityType: "factory",
-      entityId: updatedFactory.id,
-      action: "update",
-      details: { name: updatedFactory.name, address: updatedFactory.address, active: updatedFactory.active },
+      changedBy: session.user.id,
+      tableName: "factories",
+      recordId: updatedFactory.id,
+      operation: "update",
+      afterValue: { name: updatedFactory.name, address: updatedFactory.address, active: updatedFactory.isActive },
     });
 
     revalidatePath("/factories");
@@ -172,11 +172,11 @@ export async function disableFactoryAction(factoryId: unknown) {
 
     await tx.insert(auditLogs).values({
       tenantId: session.user.tenantId,
-      actorId: session.user.id,
-      entityType: "factory",
-      entityId: updatedFactory.id,
-      action: "disable",
-      details: { name: updatedFactory.name },
+      changedBy: session.user.id,
+      tableName: "factories",
+      recordId: updatedFactory.id,
+      operation: "disable",
+      afterValue: { name: updatedFactory.name },
     });
 
     revalidatePath("/factories");
@@ -250,11 +250,11 @@ export async function updateFactorySettingsAction(input: unknown) {
     await tx.insert(auditLogs).values({
       tenantId: factory.tenantId,
       factoryId: parsed.data.factoryId,
-      actorId: session.user.id,
-      entityType: "factory_settings",
-      entityId: parsed.data.factoryId,
-      action: "update",
-      details: {
+      changedBy: session.user.id,
+      tableName: "factory_settings",
+      recordId: parsed.data.factoryId,
+      operation: "update",
+      afterValue: {
         tolerances: parsed.data.tolerances,
         trimMm: parsed.data.trimMm,
         qrType: parsed.data.qrType,
@@ -284,16 +284,12 @@ export async function createCustomerAction(input: unknown) {
   return await withTenantSession(session, async (tx: any) => {
     const inserted = await tx.insert(customers).values({
       tenantId: session.user.tenantId,
-      erpCode: parsed.data.erpCode,
-      title: parsed.data.title,
-      shortTitle: parsed.data.shortTitle,
+      customerCode: parsed.data.erpCode,
+      name: parsed.data.title,
+      shortName: parsed.data.shortTitle,
       taxNumber: parsed.data.taxNumber ?? null,
-      city: parsed.data.city ?? null,
-      district: parsed.data.district ?? null,
       address: parsed.data.address ?? null,
-      latitude: parsed.data.latitude ?? null,
-      longitude: parsed.data.longitude ?? null,
-      erpStatus: parsed.data.erpStatus,
+      city: parsed.data.city ?? null,
       notes: parsed.data.notes ?? null,
     }).returning({ id: customers.id });
 
@@ -304,14 +300,13 @@ export async function createCustomerAction(input: unknown) {
 
     await tx.insert(auditLogs).values({
       tenantId: session.user.tenantId,
-      customerId: createdCustomer.id,
-      actorId: session.user.id,
-      entityType: "customer",
-      entityId: createdCustomer.id,
-      action: "create",
-      details: {
-        erpCode: parsed.data.erpCode,
-        title: parsed.data.title,
+      changedBy: session.user.id,
+      tableName: "customers",
+      recordId: createdCustomer.id,
+      operation: "create",
+      afterValue: {
+        customerCode: parsed.data.erpCode,
+        name: parsed.data.title,
       },
     });
 
@@ -339,22 +334,18 @@ export async function updateCustomerAction(input: unknown) {
 
     const updatedRows = await tx.update(customers)
       .set({
-        erpCode: parsed.data.erpCode,
-        title: parsed.data.title,
-        shortTitle: parsed.data.shortTitle,
+        customerCode: parsed.data.erpCode,
+        name: parsed.data.title,
+        shortName: parsed.data.shortTitle,
         taxNumber: parsed.data.taxNumber ?? null,
-        city: parsed.data.city ?? null,
-        district: parsed.data.district ?? null,
         address: parsed.data.address ?? null,
-        latitude: parsed.data.latitude ?? null,
-        longitude: parsed.data.longitude ?? null,
-        erpStatus: parsed.data.erpStatus,
+        city: parsed.data.city ?? null,
         notes: parsed.data.notes ?? null,
-        active: parsed.data.active ?? true,
+        isActive: parsed.data.active ?? true,
         updatedAt: new Date(),
       })
       .where(condition)
-      .returning({ id: customers.id, erpCode: customers.erpCode, title: customers.title, shortTitle: customers.shortTitle, active: customers.active });
+      .returning({ id: customers.id, customerCode: customers.customerCode, name: customers.name, shortName: customers.shortName, isActive: customers.isActive });
 
     const updatedCustomer = updatedRows[0];
     if (!updatedCustomer) {
@@ -363,16 +354,15 @@ export async function updateCustomerAction(input: unknown) {
 
     await tx.insert(auditLogs).values({
       tenantId: session.user.tenantId,
-      customerId: updatedCustomer.id,
-      actorId: session.user.id,
-      entityType: "customer",
-      entityId: updatedCustomer.id,
-      action: "update",
-      details: {
-        erpCode: updatedCustomer.erpCode,
-        title: updatedCustomer.title,
-        shortTitle: updatedCustomer.shortTitle,
-        active: updatedCustomer.active,
+      changedBy: session.user.id,
+      tableName: "customers",
+      recordId: updatedCustomer.id,
+      operation: "update",
+      afterValue: {
+        customerCode: updatedCustomer.customerCode,
+        name: updatedCustomer.name,
+        shortName: updatedCustomer.shortName,
+        isActive: updatedCustomer.isActive,
       },
     });
 
@@ -398,9 +388,9 @@ export async function disableCustomerAction(customerId: unknown) {
         : and(eq(customers.id, customerId), eq(customers.tenantId, session.user.tenantId));
 
     const updatedRows = await tx.update(customers)
-      .set({ active: false, updatedAt: new Date() })
+      .set({ isActive: false, updatedAt: new Date() })
       .where(condition)
-      .returning({ id: customers.id, erpCode: customers.erpCode, title: customers.title });
+      .returning({ id: customers.id, customerCode: customers.customerCode, name: customers.name });
 
     const updatedCustomer = updatedRows[0];
     if (!updatedCustomer) {
@@ -409,14 +399,13 @@ export async function disableCustomerAction(customerId: unknown) {
 
     await tx.insert(auditLogs).values({
       tenantId: session.user.tenantId,
-      customerId: updatedCustomer.id,
-      actorId: session.user.id,
-      entityType: "customer",
-      entityId: updatedCustomer.id,
-      action: "disable",
-      details: {
-        erpCode: updatedCustomer.erpCode,
-        title: updatedCustomer.title,
+      changedBy: session.user.id,
+      tableName: "customers",
+      recordId: updatedCustomer.id,
+      operation: "disable",
+      afterValue: {
+        customerCode: updatedCustomer.customerCode,
+        name: updatedCustomer.name,
       },
     });
 
@@ -451,7 +440,7 @@ export async function createCustomerContactAction(input: unknown) {
       phone: parsed.data.phone ?? null,
       whatsapp: parsed.data.whatsapp ?? null,
       email: parsed.data.email ?? null,
-      active: parsed.data.active ?? true,
+      isActive: parsed.data.active ?? true,
     }).returning({ id: customerContacts.id });
 
     const createdContact = inserted[0];
@@ -461,12 +450,11 @@ export async function createCustomerContactAction(input: unknown) {
 
     await tx.insert(auditLogs).values({
       tenantId: session.user.tenantId,
-      customerId: parsed.data.customerId,
-      actorId: session.user.id,
-      entityType: "customer_contact",
-      entityId: createdContact.id,
-      action: "create",
-      details: {
+      changedBy: session.user.id,
+      tableName: "customer_contacts",
+      recordId: createdContact.id,
+      operation: "create",
+      afterValue: {
         name: parsed.data.name,
         role: parsed.data.role,
       },
@@ -510,7 +498,7 @@ export async function updateCustomerContactAction(input: unknown) {
         phone: parsed.data.phone ?? null,
         whatsapp: parsed.data.whatsapp ?? null,
         email: parsed.data.email ?? null,
-        active: parsed.data.active ?? true,
+        isActive: parsed.data.active ?? true,
         updatedAt: new Date(),
       })
       .where(eq(customerContacts.id, parsed.data.id))
@@ -523,12 +511,11 @@ export async function updateCustomerContactAction(input: unknown) {
 
     await tx.insert(auditLogs).values({
       tenantId: session.user.tenantId,
-      customerId: parsed.data.customerId,
-      actorId: session.user.id,
-      entityType: "customer_contact",
-      entityId: updatedContact.id,
-      action: "update",
-      details: {
+      changedBy: session.user.id,
+      tableName: "customer_contacts",
+      recordId: updatedContact.id,
+      operation: "update",
+      afterValue: {
         name: updatedContact.name,
         role: updatedContact.role,
       },
@@ -579,12 +566,11 @@ export async function createDeliveryPointAction(input: unknown) {
 
     await tx.insert(auditLogs).values({
       tenantId: session.user.tenantId,
-      customerId: parsed.data.customerId,
-      actorId: session.user.id,
-      entityType: "delivery_point",
-      entityId: createdPoint.id,
-      action: "create",
-      details: {
+      changedBy: session.user.id,
+      tableName: "delivery_points",
+      recordId: createdPoint.id,
+      operation: "create",
+      afterValue: {
         name: parsed.data.name,
       },
     });
@@ -644,12 +630,11 @@ export async function updateDeliveryPointAction(input: unknown) {
 
     await tx.insert(auditLogs).values({
       tenantId: session.user.tenantId,
-      customerId: parsed.data.customerId,
-      actorId: session.user.id,
-      entityType: "delivery_point",
-      entityId: updatedPoint.id,
-      action: "update",
-      details: {
+      changedBy: session.user.id,
+      tableName: "delivery_points",
+      recordId: updatedPoint.id,
+      operation: "update",
+      afterValue: {
         name: updatedPoint.name,
       },
     });
@@ -694,11 +679,11 @@ export async function createUserAction(input: unknown) {
 
     await tx.insert(auditLogs).values({
       tenantId: parsed.data.tenantId,
-      actorId: session.user.id,
-      entityType: "user",
-      entityId: createdUser.id,
-      action: "create",
-      details: { email: parsed.data.email, role: roleRecord.name },
+      changedBy: session.user.id,
+      tableName: "users",
+      recordId: createdUser.id,
+      operation: "create",
+      afterValue: { email: parsed.data.email, role: roleRecord.name },
     });
 
     revalidatePath("/users");

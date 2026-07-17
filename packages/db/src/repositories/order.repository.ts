@@ -1,5 +1,5 @@
-import { orders } from "../schema/index.js";
-import { BaseRepository } from "./base.repository.js";
+import { orders } from "../schema/index";
+import { BaseRepository } from "./base.repository";
 
 export class OrderRepository extends BaseRepository<any> {
   constructor(db: any) {

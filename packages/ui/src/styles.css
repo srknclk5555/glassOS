@@ -1,0 +1,230 @@
+/* =================================================================
+ * GlassOS Design System — Theme Tokens
+ * Tailwind v4 @theme directives + runtime CSS variables
+ * Dark mode is primary. Light mode overrides via .light class.
+ * ================================================================= */
+
+@import "tailwindcss";
+
+/* ── Source scan: ensure TW picks up classes from consumer apps ── */
+@source "../src";
+
+/* ── Theme tokens ──────────────────────────────────────────────── */
+@theme {
+  /* Typography */
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", monospace;
+
+  /* Border radius */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+
+  /* ── Surface colors ─────────────────────────────────── */
+
+  --color-glass-background: var(--glass-background);
+  --color-glass-surface: var(--glass-surface);
+  --color-glass-surface-hover: var(--glass-surface-hover);
+  --color-glass-elevated: var(--glass-elevated);
+  --color-glass-border: var(--glass-border);
+  --color-glass-border-hover: var(--glass-border-hover);
+
+  /* ── Brand ──────────────────────────────────────────── */
+
+  --color-primary: var(--glass-primary);
+  --color-primary-hover: var(--glass-primary-hover);
+  --color-primary-foreground: #ffffff;
+  --color-secondary: var(--glass-secondary);
+
+  /* ── Semantic / status ──────────────────────────────── */
+
+  --color-success: var(--glass-success);
+  --color-warning: var(--glass-warning);
+  --color-danger: var(--glass-danger);
+  --color-info: var(--glass-info);
+
+  /* ── Text ───────────────────────────────────────────── */
+
+  --color-text-primary: var(--glass-text-primary);
+  --color-text-secondary: var(--glass-text-secondary);
+  --color-text-muted: var(--glass-text-muted);
+
+  /* ── Queue / Production ─────────────────────────────── */
+
+  --color-queue-waiting: var(--glass-queue-waiting);
+  --color-queue-running: var(--glass-queue-running);
+  --color-queue-completed: var(--glass-queue-completed);
+  --color-queue-paused: var(--glass-queue-paused);
+  --color-queue-cancelled: var(--glass-queue-cancelled);
+
+  /* ── Stations ───────────────────────────────────────── */
+
+  --color-station-idle: var(--glass-station-idle);
+  --color-station-active: var(--glass-station-active);
+  --color-station-maintenance: var(--glass-station-maintenance);
+  --color-station-offline: var(--glass-station-offline);
+
+  /* ── Priority ───────────────────────────────────────── */
+
+  --color-priority-critical: var(--glass-priority-critical);
+  --color-priority-high: var(--glass-priority-high);
+  --color-priority-normal: var(--glass-priority-normal);
+  --color-priority-low: var(--glass-priority-low);
+
+  /* ── Shadows ────────────────────────────────────────── */
+
+  --shadow-xs: var(--glass-shadow-xs);
+  --shadow-sm: var(--glass-shadow-sm);
+  --shadow-md: var(--glass-shadow-md);
+  --shadow-lg: var(--glass-shadow-lg);
+  --shadow-xl: var(--glass-shadow-xl);
+}
+
+/* =================================================================
+ * DARK MODE (default)
+ * ================================================================= */
+
+:root {
+  --glass-background: #09090b;
+  --glass-surface: #18181b;
+  --glass-surface-hover: #1f1f23;
+  --glass-elevated: #27272a;
+  --glass-border: #2a2a2e;
+  --glass-border-hover: #3f3f46;
+
+  --glass-primary: #6366f1;
+  --glass-primary-hover: #818cf8;
+  --glass-secondary: #a1a1aa;
+
+  --glass-success: #22c55e;
+  --glass-warning: #f59e0b;
+  --glass-danger: #ef4444;
+  --glass-info: #3b82f6;
+
+  --glass-text-primary: #fafafa;
+  --glass-text-secondary: #a1a1aa;
+  --glass-text-muted: #71717a;
+
+  --glass-queue-waiting: #f59e0b;
+  --glass-queue-running: #22c55e;
+  --glass-queue-completed: #6366f1;
+  --glass-queue-paused: #a1a1aa;
+  --glass-queue-cancelled: #ef4444;
+
+  --glass-station-idle: #a1a1aa;
+  --glass-station-active: #22c55e;
+  --glass-station-maintenance: #f59e0b;
+  --glass-station-offline: #ef4444;
+
+  --glass-priority-critical: #ef4444;
+  --glass-priority-high: #f59e0b;
+  --glass-priority-normal: #6366f1;
+  --glass-priority-low: #a1a1aa;
+
+  --glass-shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.4);
+  --glass-shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.4), 0 1px 2px -1px rgb(0 0 0 / 0.3);
+  --glass-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+  --glass-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+  --glass-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.4), 0 8px 10px -6px rgb(0 0 0 / 0.3);
+
+  color-scheme: dark;
+}
+
+/* =================================================================
+ * LIGHT MODE
+ * ================================================================= */
+
+.light {
+  --glass-background: #ffffff;
+  --glass-surface: #fafafa;
+  --glass-surface-hover: #f4f4f5;
+  --glass-elevated: #ffffff;
+  --glass-border: #e4e4e7;
+  --glass-border-hover: #d4d4d8;
+
+  --glass-primary: #6366f1;
+  --glass-primary-hover: #4f46e5;
+  --glass-secondary: #71717a;
+
+  --glass-success: #16a34a;
+  --glass-warning: #d97706;
+  --glass-danger: #dc2626;
+  --glass-info: #2563eb;
+
+  --glass-text-primary: #18181b;
+  --glass-text-secondary: #52525b;
+  --glass-text-muted: #a1a1aa;
+
+  --glass-queue-waiting: #d97706;
+  --glass-queue-running: #16a34a;
+  --glass-queue-completed: #4f46e5;
+  --glass-queue-paused: #71717a;
+  --glass-queue-cancelled: #dc2626;
+
+  --glass-station-idle: #71717a;
+  --glass-station-active: #16a34a;
+  --glass-station-maintenance: #d97706;
+  --glass-station-offline: #dc2626;
+
+  --glass-priority-critical: #dc2626;
+  --glass-priority-high: #d97706;
+  --glass-priority-normal: #4f46e5;
+  --glass-priority-low: #71717a;
+
+  --glass-shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --glass-shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.08), 0 1px 2px -1px rgb(0 0 0 / 0.06);
+  --glass-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.06);
+  --glass-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.06);
+  --glass-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.08), 0 8px 10px -6px rgb(0 0 0 / 0.06);
+
+  color-scheme: light;
+}
+
+/* =================================================================
+ * Base layer
+ * ================================================================= */
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    border-color: var(--glass-border);
+  }
+
+  body {
+    background-color: var(--glass-background);
+    color: var(--glass-text-primary);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Custom scrollbar (dark) */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--glass-border);
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--glass-border-hover);
+  }
+
+  /* Focus ring */
+  *:focus-visible {
+    outline: none;
+    ring: 2px solid var(--glass-primary);
+    ring-offset: 2px;
+  }
+}

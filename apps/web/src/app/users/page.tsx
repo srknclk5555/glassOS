@@ -11,7 +11,7 @@ export default async function UsersPage() {
       <h1>Users</h1>
       <ul>
         {rows.map((user) => (
-          <li key={user.id}>{user.name} — {user.email} — {user.active ? "Active" : "Inactive"}</li>
+          <li key={user.id}>{user.name} — {user.email} — {user.isActive ? "Active" : "Inactive"}</li>
         ))}
       </ul>
     </main>

@@ -5,22 +5,15 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1784184363589,
-      "tag": "0000_first_synch",
+      "when": 1784252997110,
+      "tag": "0000_brave_gideon",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "7",
-      "when": 1784185276953,
-      "tag": "0001_optimal_groot",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1785052800000,
-      "tag": "0002_rls_implementation",
+      "when": 1784318777836,
+      "tag": "0001_small_squadron_sinister",
       "breakpoints": true
     }
   ]

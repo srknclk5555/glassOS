@@ -1,9 +1,9 @@
-import { ProductionRepository } from "../repositories/production.repository.js";
-import { OrderLineRepository } from "../repositories/order-line.repository.js";
-import { OrderRepository } from "../repositories/order.repository.js";
-import { ProductionQueueService } from "./production-queue.service.js";
-import { ReworkService } from "./rework.service.js";
-import { withTenantSession } from "../db/transactions.js";
+import { ProductionRepository } from "../repositories/production.repository";
+import { OrderLineRepository } from "../repositories/order-line.repository";
+import { OrderRepository } from "../repositories/order.repository";
+import { ProductionQueueService } from "./production-queue.service";
+import { ReworkService } from "./rework.service";
+import { withTenantSession } from "../db/transactions";
 
 import type {
   CuttingSessionCreatedEvent,
@@ -16,7 +16,7 @@ import type {
   CuttingStartedEvent as CuttingStartedEventAlias,
   EventPublisher,
   DomainEvent,
-} from "./events.js";
+} from "./events";
 
 // ─── Session State ───────────────────────────────────────────────────────────
 

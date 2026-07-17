@@ -1,15 +1,16 @@
-export { CustomerService } from "./customer.service.js";
-export { OrderService } from "./order.service.js";
-export { ProductionService } from "./production.service.js";
-export { ProductionQueueService } from "./production-queue.service.js";
-export { ReworkService } from "./rework.service.js";
-export { CuttingExecutionService } from "./cutting-execution.service.js";
-export { ProductionTransferService } from "./production-transfer.service.js";
-export { StationOperationService } from "./station-operation.service.js";
-export { QualityControlService } from "./quality-control.service.js";
-export { DispatchService } from "./dispatch.service.js";
+export { MachineService } from "./machine.service";
+export { CustomerService } from "./customer.service";
+export { OrderService } from "./order.service";
+export { ProductionService } from "./production.service";
+export { ProductionQueueService } from "./production-queue.service";
+export { ReworkService } from "./rework.service";
+export { CuttingExecutionService } from "./cutting-execution.service";
+export { ProductionTransferService } from "./production-transfer.service";
+export { StationOperationService } from "./station-operation.service";
+export { QualityControlService } from "./quality-control.service";
+export { DispatchService } from "./dispatch.service";
 
-export { LocalEventPublisher, InMemoryEventPublisher } from "../events/index.js";
+export { LocalEventPublisher, InMemoryEventPublisher } from "../events/index";
 
 export type {
   DomainEvent,
@@ -59,7 +60,11 @@ export type {
   DeliveryCompletedEvent,
   PartialDeliveryCompletedEvent,
   DispatchCancelledEvent,
-} from "./events.js";
+  MachineCreatedEvent,
+  MachineUpdatedEvent,
+  MachineDeactivatedEvent,
+  MachineStatusChangedEvent,
+} from "./events";
 
 export type {
   ProductionTransferService as ProductionTransferServiceType,
@@ -67,7 +72,7 @@ export type {
   TransferStatus,
   TransferRecord,
   TransferStats,
-} from "./production-transfer.service.js";
+} from "./production-transfer.service";
 
 export type {
   QualityControlService as QualityControlServiceType,
@@ -80,7 +85,7 @@ export type {
   StartInspectionInput,
   InspectionRecord,
   QualityStats,
-} from "./quality-control.service.js";
+} from "./quality-control.service";
 
 export type {
   DispatchService as DispatchServiceType,
@@ -95,7 +100,7 @@ export type {
   CreateDispatchInput,
   CreateDeliveryInput,
   ReadyPoolFilter,
-} from "./dispatch.service.js";
+} from "./dispatch.service";
 
 export type {
   StationOperationService as StationOperationServiceType,
@@ -112,4 +117,4 @@ export type {
   RejectOperationInput,
   ValidationResult,
   STATION_IDS,
-} from "./station-operation.service.js";
+} from "./station-operation.service";

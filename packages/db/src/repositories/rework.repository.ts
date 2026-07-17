@@ -1,5 +1,5 @@
-import { reworkOrders } from "../schema/index.js";
-import { BaseRepository } from "./base.repository.js";
+import { reworkOrders } from "../schema/index";
+import { BaseRepository } from "./base.repository";
 
 export class ReworkRepository extends BaseRepository<any> {
   constructor(db: any) {

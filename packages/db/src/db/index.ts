@@ -1,19 +1,19 @@
-export * from "../schema/index.js";
-export * from "./client.js";
-export * from "./context.js";
-export * from "./errors.js";
-export * from "./query.js";
-export { relations as dbRelations, relationsMap as dbRelationsMap } from "./relations.js";
-export * from "./transactions.js";
+export * from "../schema/index";
+export * from "./client";
+export * from "./context";
+export * from "./errors";
+export * from "./query";
+export { relations as dbRelations, relationsMap as dbRelationsMap } from "./relations";
+export * from "./transactions";
 
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { createDatabaseClient } from "./client.js";
-import { createDatabaseContext } from "./context.js";
-import { createQueryState, defaultQueryState } from "./query.js";
-import { mapDatabaseError } from "./errors.js";
-import { withTenantSession, withTransaction } from "./transactions.js";
-import { relations } from "./relations.js";
+import { createDatabaseClient } from "./client";
+import { createDatabaseContext } from "./context";
+import { createQueryState, defaultQueryState } from "./query";
+import { mapDatabaseError } from "./errors";
+import { withTenantSession, withTransaction } from "./transactions";
+import { relations } from "./relations";
 
 const connectionString = process.env.DATABASE_URL ?? "postgres://postgres:postgres@localhost:5432/glassos";
 

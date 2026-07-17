@@ -12,7 +12,7 @@ export default async function TenantsPage() {
       <h1>Tenants</h1>
       <ul>
         {rows.map((tenant) => (
-          <li key={tenant.id}>{tenant.name} — {tenant.active ? "Active" : "Inactive"}</li>
+          <li key={tenant.id}>{tenant.name} — {tenant.isActive ? "Active" : "Inactive"}</li>
         ))}
       </ul>
     </main>

@@ -1,15 +1,15 @@
-import { ProductionQueueRepository } from "../repositories/production-queue.repository.js";
-import { ProductionRepository } from "../repositories/production.repository.js";
-import { OrderRepository } from "../repositories/order.repository.js";
-import { OrderLineRepository } from "../repositories/order-line.repository.js";
-import { withTenantSession } from "../db/transactions.js";
+import { ProductionQueueRepository } from "../repositories/production-queue.repository";
+import { ProductionRepository } from "../repositories/production.repository";
+import { OrderRepository } from "../repositories/order.repository";
+import { OrderLineRepository } from "../repositories/order-line.repository";
+import { withTenantSession } from "../db/transactions";
 
 import type {
   QueueCreatedEvent,
   QueueStartedEvent,
   QueueCompletedEvent,
   EventPublisher,
-} from "./events.js";
+} from "./events";
 
 export class ProductionQueueService {
   constructor(

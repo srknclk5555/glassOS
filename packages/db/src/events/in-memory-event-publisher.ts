@@ -1,4 +1,4 @@
-import type { DomainEvent, EventPublisher } from "../services/events.js";
+import type { DomainEvent, EventPublisher } from "../services/events";
 
 /**
  * InMemoryEventPublisher — stores events in memory for test assertions.

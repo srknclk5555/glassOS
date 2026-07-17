@@ -56,9 +56,12 @@ export const customerContacts = pgTable("customer_contacts", {
 
   name: varchar("name", { length: 255 }).notNull(),
   title: varchar("title", { length: 100 }),
+  role: varchar("role", { length: 100 }),
   phone: varchar("phone", { length: 50 }),
+  whatsapp: varchar("whatsapp", { length: 50 }),
   email: varchar("email", { length: 255 }),
   isPrimary: boolean("is_primary").notNull().default(false),
+  isActive: boolean("is_active").notNull().default(true),
 
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()

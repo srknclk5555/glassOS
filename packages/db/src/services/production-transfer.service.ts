@@ -1,7 +1,7 @@
-import { ProductionRepository } from "../repositories/production.repository.js";
-import { OrderLineRepository } from "../repositories/order-line.repository.js";
-import { OrderRepository } from "../repositories/order.repository.js";
-import { withTenantSession } from "../db/transactions.js";
+import { ProductionRepository } from "../repositories/production.repository";
+import { OrderLineRepository } from "../repositories/order-line.repository";
+import { OrderRepository } from "../repositories/order.repository";
+import { withTenantSession } from "../db/transactions";
 
 import type {
   TransferInitiatedEvent,
@@ -12,7 +12,7 @@ import type {
   ProductionTransferredEvent,
   EventPublisher,
   DomainEvent,
-} from "./events.js";
+} from "./events";
 
 // ─── Transfer Types ──────────────────────────────────────────────────────────
 

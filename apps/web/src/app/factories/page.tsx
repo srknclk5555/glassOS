@@ -22,7 +22,7 @@ export default async function FactoriesPage() {
                 <div>{factory.address ?? "No address"}</div>
               </div>
               <div>
-                <span>{factory.active ? "Active" : "Inactive"}</span>
+                <span>{factory.isActive ? "Active" : "Inactive"}</span>
               </div>
             </div>
           </li>

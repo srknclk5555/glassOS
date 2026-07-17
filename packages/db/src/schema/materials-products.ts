@@ -21,6 +21,7 @@ export const materials = pgTable("materials", {
     () => factories.id,
     { onDelete: "restrict" }
   ),
+  categoryId: char("category_id", { length: 26 }),
 
   materialCode: varchar("material_code", { length: 50 }).notNull(), // unique per tenant — enforced by index
   name: varchar("name", { length: 255 }).notNull(),

@@ -8,6 +8,7 @@ import {
   numeric,
   timestamp,
   date,
+  index,
 } from "drizzle-orm/pg-core";
 import { tenants } from "./core";
 import { factories } from "./factories";
@@ -86,40 +87,48 @@ export const productionOrders = pgTable("production_orders", {
 // ─── Owned Objects ────────────────────────────────────────────────────────────
 
 // Immutable event log — one row per station transition
-export const productionEvents = pgTable("production_events", {
-  id: char("id", { length: 26 }).primaryKey(),
-  productionOrderId: char("production_order_id", { length: 26 })
-    .notNull()
-    .references(() => productionOrders.id, { onDelete: "restrict" }),
+export const productionEvents = pgTable(
+  "production_events",
+  {
+    id: char("id", { length: 26 }).primaryKey(),
+    productionOrderId: char("production_order_id", { length: 26 })
+      .notNull()
+      .references(() => productionOrders.id, { onDelete: "restrict" }),
 
-  eventType: varchar("event_type", { length: 30 }).notNull(),
-  // started | paused | completed | broken | transferred | rework_created
+    eventType: varchar("event_type", { length: 30 }).notNull(),
+    // started | paused | completed | broken | transferred | rework_created
 
-  fromOperation: varchar("from_operation", { length: 50 }),
-  toOperation: varchar("to_operation", { length: 50 }),
-  stationId: char("station_id", { length: 26 }).references(
-    () => stations.id,
-    { onDelete: "restrict" }
-  ),
-  machineId: char("machine_id", { length: 26 }).references(
-    () => machines.id,
-    { onDelete: "restrict" }
-  ),
-  operatorId: char("operator_id", { length: 26 }).references(
-    () => personnel.id,
-    { onDelete: "restrict" }
-  ),
-  shiftId: char("shift_id", { length: 26 }).references(
-    () => personnelShifts.id,
-    { onDelete: "restrict" }
-  ),
-  eventAt: timestamp("event_at", { withTimezone: true }).notNull(),
-  notes: text("notes"),
+    fromOperation: varchar("from_operation", { length: 50 }),
+    toOperation: varchar("to_operation", { length: 50 }),
+    stationId: char("station_id", { length: 26 }).references(
+      () => stations.id,
+      { onDelete: "restrict" }
+    ),
+    machineId: char("machine_id", { length: 26 }).references(
+      () => machines.id,
+      { onDelete: "restrict" }
+    ),
+    operatorId: char("operator_id", { length: 26 }).references(
+      () => personnel.id,
+      { onDelete: "restrict" }
+    ),
+    shiftId: char("shift_id", { length: 26 }).references(
+      () => personnelShifts.id,
+      { onDelete: "restrict" }
+    ),
+    eventAt: timestamp("event_at", { withTimezone: true }).notNull(),
+    notes: text("notes"),
 
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-});
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => ({
+    productionOrderIdIdx: index("idx_events_production_order_id").on(
+      table.productionOrderId
+    ),
+  })
+);
 
 export const productionBreakageEvents = pgTable("production_breakage_events", {
   id: char("id", { length: 26 }).primaryKey(),

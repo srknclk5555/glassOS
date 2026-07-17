@@ -6,6 +6,7 @@ import {
   boolean,
   integer,
   timestamp,
+  index,
 } from "drizzle-orm/pg-core";
 import { tenants } from "./core";
 import { factories } from "./factories";
@@ -66,7 +67,11 @@ export const stationMachineAssignments = pgTable(
     assignedAt: timestamp("assigned_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
-  }
+  },
+  (table) => ({
+    stationIdIdx: index("idx_sma_station_id").on(table.stationId),
+    machineIdIdx: index("idx_sma_machine_id").on(table.machineId),
+  })
 );
 
 export const stationPersonnelAssignments = pgTable(

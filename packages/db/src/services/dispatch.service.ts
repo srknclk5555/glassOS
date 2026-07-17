@@ -1,8 +1,8 @@
-import { ProductionRepository } from "../repositories/production.repository.js";
-import { OrderLineRepository } from "../repositories/order-line.repository.js";
-import { OrderRepository } from "../repositories/order.repository.js";
-import { QualityControlService } from "./quality-control.service.js";
-import { withTenantSession } from "../db/transactions.js";
+import { ProductionRepository } from "../repositories/production.repository";
+import { OrderLineRepository } from "../repositories/order-line.repository";
+import { OrderRepository } from "../repositories/order.repository";
+import { QualityControlService } from "./quality-control.service";
+import { withTenantSession } from "../db/transactions";
 
 import type {
   DispatchCreatedEvent,
@@ -14,7 +14,7 @@ import type {
   PartialDeliveryCompletedEvent,
   DispatchCancelledEvent,
   EventPublisher,
-} from "./events.js";
+} from "./events";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 

@@ -1,5 +1,5 @@
-import { type Job, calculateBackoff } from "./job.js";
-import { type IJobQueue } from "./job-queue.js";
+import { type Job, calculateBackoff } from "./job";
+import { type IJobQueue } from "./job-queue";
 
 // ─── Interfaces ──────────────────────────────────────────────────────────────
 

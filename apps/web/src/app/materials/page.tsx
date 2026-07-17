@@ -9,8 +9,8 @@ export default async function MaterialsPage() {
 
   const rows = await db.query.materials.findMany({
     where: session.user.role === "super_admin"
-      ? eq(materials.active, true)
-      : and(eq(materials.tenantId, session.user.tenantId), eq(materials.active, true)),
+      ? eq(materials.isActive, true)
+      : and(eq(materials.tenantId, session.user.tenantId), eq(materials.isActive, true)),
     columns: { id: true, materialCode: true, name: true },
     orderBy: materials.name,
   });

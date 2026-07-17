@@ -57,7 +57,7 @@ import {
   trimProfiles,
   userSessions,
   users,
-} from "../schema/index.js";
+} from "../schema/index";
 
 const relationBuilder = createRelations;
 

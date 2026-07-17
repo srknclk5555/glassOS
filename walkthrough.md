@@ -1,3 +1,18 @@
+# Walkthrough — Sprint 2.7.0: UI Foundation & Design System
+
+Tarih: 2026-07-18. Sprint 2.7.0 — `@repo/ui` tasarım sistemi, ~40+ bileşen, dark-first tema, Layout sistemi. Backend bağımlılığı yok.
+
+1. 2026-07-18 — Sprint 2.7.0: UI Foundation tamamlandı
+   - **Modül**: `packages/ui/` — 7 dizin: `components/ui/` (~24 bileşen), `components/data-grid/` (DataGrid<T>), `components/layout/` (Shell, Sidebar, TopBar, Notifications, Profile, FactorySwitcher, ThemeSwitcher), `components/providers/` (ThemeProvider + useTheme()), `lib/` (cn utility), `styles.css` (theme tokens), `index.ts` (barrel export)
+   - **Theme sistemi**: TailwindCSS v4 `@theme` directives ile 100+ CSS variable. Dark mode varsayılan, light mode `.light` class override. Renk sistemleri: surfaces, brand, text, status, queue, station, priority. Gölge sistemi xs→xl.
+   - **Radix UI primitives**: 12 Radix paketi — Dialog, DropdownMenu, Tooltip, Tabs, Select, Checkbox, Switch, Toast, Avatar, Label, Popover, ScrollArea, Slot.
+   - **Dependency injection yok**: Tüm bileşenler prop tabanlı, backend'den tamamen bağımsız.
+   - **Accessibility**: Tüm overlay/navigation bileşenleri WAI-ARIA uyumlu Radix primitives üzerinde.
+   - **TypeScript**: `packages/ui` tsc --noEmit 0 hata (Bundler module resolution). `apps/web` tsc --noEmit — UI ile ilgili 0 hata (sadece pre-existing @repo/db schema uyumsuzlukları var). `apps/api` tsc --noEmit 0 hata.
+   - **Dokümantasyon**: UI_ARCHITECTURE.md oluşturuldu (design principles, component hierarchy, layout hierarchy, theme tokens, folder structure, naming conventions, tech stack, accessibility, DataGrid architecture, future page strategy). PLAN.md, CHANGELOG.md, README.md, walkthrough.md güncellendi.
+
+---
+
 # Walkthrough — Sprint 2.6.6: Background Job Architecture (Enterprise Foundation)
 
 Tarih: 2026-07-16. Sprint 2.6.6 — Background job infrastructure (in-memory), hiçbir business job implemente edilmedi.

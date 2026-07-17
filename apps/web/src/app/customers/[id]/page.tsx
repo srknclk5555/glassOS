@@ -25,7 +25,7 @@ export default async function Page(props: any) {
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h1>{customer.title}</h1>
+        <h1>{customer.name}</h1>
         <Link href="/customers">Geri</Link>
       </div>
       <CustomerDetail customer={customer} />

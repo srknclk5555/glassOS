@@ -1,10 +1,10 @@
-import { CustomerRepository } from "../repositories/customer.repository.js";
-import { OrderRepository } from "../repositories/order.repository.js";
-import { OrderLineRepository } from "../repositories/order-line.repository.js";
-import { ProductionRepository } from "../repositories/production.repository.js";
-import { withTenantSession } from "../db/transactions.js";
+import { CustomerRepository } from "../repositories/customer.repository";
+import { OrderRepository } from "../repositories/order.repository";
+import { OrderLineRepository } from "../repositories/order-line.repository";
+import { ProductionRepository } from "../repositories/production.repository";
+import { withTenantSession } from "../db/transactions";
 
-import type { OrderApprovedEvent, EventPublisher } from "./events.js";
+import type { OrderApprovedEvent, EventPublisher } from "./events";
 
 export class OrderService {
   constructor(

@@ -4,8 +4,10 @@
 
 - Architecture Status: Implemented
 - Implementation Status: Implemented
-- Validation Status: Passed
-- Last Updated: 2026-07-16
+- Validation Status: Passed (Browser doğrulaması — 12/12 adım)
+- Last Updated: 2026-07-17
+
+> **Güncelleme (Sprint 2.8.0):** Makine CRUD web UI'ı (`/machines`), DataGrid, detay dialog, form validasyonu, i18n (TR/EN), RBAC yetkilendirme ve operatör atama/çıkarma eklendi. Makine Detayında "Atanmış Operatörler" bölümü ile çift yönlü atama yönetimi sağlandı.
 
 ## 1. Makine Varlık Yönetimi
 

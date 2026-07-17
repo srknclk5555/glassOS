@@ -8,8 +8,8 @@ export default async function CustomersPage() {
 
   const rows = await db.query.customers.findMany({
     where: session.user.role === "super_admin" ? undefined : eq(customers.tenantId, session.user.tenantId),
-    columns: { id: true, erpCode: true, title: true, shortTitle: true, active: true },
-    orderBy: customers.title,
+    columns: { id: true, customerCode: true, name: true, shortName: true, isActive: true },
+    orderBy: customers.name,
   });
 
   return (
@@ -32,10 +32,10 @@ export default async function CustomersPage() {
         <tbody>
           {rows.map((c) => (
             <tr key={c.id}>
-              <td>{c.erpCode}</td>
-              <td>{c.title}</td>
-              <td>{c.shortTitle}</td>
-              <td>{c.active ? "Aktif" : "Pasif"}</td>
+              <td>{c.customerCode}</td>
+              <td>{c.name}</td>
+              <td>{c.shortName}</td>
+              <td>{c.isActive ? "Aktif" : "Pasif"}</td>
               <td>
                 <Link href={`/customers/${c.id}`}>Detay</Link>
               </td>

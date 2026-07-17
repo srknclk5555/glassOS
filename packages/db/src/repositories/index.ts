@@ -1,15 +1,18 @@
 // Identity & Organization
-export * from "./tenant.repository.js";
-export * from "./factory.repository.js";
-export * from "./user.repository.js";
-export * from "./role.repository.js";
-export * from "./permission.repository.js";
-export * from "./personnel.repository.js";
+export * from "./tenant.repository";
+export * from "./factory.repository";
+export * from "./user.repository";
+export * from "./role.repository";
+export * from "./permission.repository";
+export * from "./personnel.repository";
+
+// Machine & Station
+export * from "./machine.repository";
 
 // Core Production
-export * from "./customer.repository.js";
-export * from "./order.repository.js";
-export * from "./order-line.repository.js";
-export * from "./production.repository.js";
-export * from "./production-queue.repository.js";
-export * from "./rework.repository.js";
+export * from "./customer.repository";
+export * from "./order.repository";
+export * from "./order-line.repository";
+export * from "./production.repository";
+export * from "./production-queue.repository";
+export * from "./rework.repository";

@@ -1,4 +1,4 @@
-import { type JobHandler } from "./job.js";
+import { type JobHandler } from "./job";
 
 // ─── Interface ───────────────────────────────────────────────────────────────
 

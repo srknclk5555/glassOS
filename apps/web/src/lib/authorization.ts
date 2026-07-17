@@ -1,15 +1,19 @@
 import { cache } from "react";
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import { requireSession } from "./session";
-import { db, tenants, factories, roles, users } from "@repo/db";
+import { db, roles, users } from "@repo/db";
 import { eq } from "drizzle-orm";
 
-export type Permission = "tenants:read" | "tenants:write" | "factories:read" | "factories:write" | "users:read" | "users:write";
+export type Permission = "tenants:read" | "tenants:write" | "factories:read" | "factories:write" | "users:read" | "users:write" | "machines:read" | "machines:write" | "stations:read" | "stations:write" | "personnel:read" | "personnel:write";
 
 const permissionMap: Record<string, Permission[]> = {
-  super_admin: ["tenants:read", "tenants:write", "factories:read", "factories:write", "users:read", "users:write"],
-  tenant_admin: ["factories:read", "factories:write", "users:read", "users:write"],
-  factory_manager: ["factories:read", "users:read"],
+  super_admin: ["tenants:read", "tenants:write", "factories:read", "factories:write", "users:read", "users:write", "machines:read", "machines:write", "stations:read", "stations:write", "personnel:read", "personnel:write"],
+  tenant_admin: ["factories:read", "factories:write", "users:read", "users:write", "machines:read", "machines:write", "stations:read", "stations:write", "personnel:read", "personnel:write"],
+  factory_manager: ["factories:read", "users:read", "machines:read", "machines:write", "stations:read", "stations:write", "personnel:read", "personnel:write"],
+  production_manager: ["factories:read", "machines:read", "machines:write", "stations:read", "stations:write", "personnel:read", "personnel:write"],
+  maintenance_tech: ["factories:read", "machines:read", "machines:write", "stations:read"],
+  quality_engineer: ["factories:read", "machines:read", "stations:read"],
+  operator: ["factories:read", "machines:read", "stations:read"],
   office: ["factories:read", "users:read"],
   planning: ["factories:read"],
   cutting: ["factories:read"],
@@ -23,28 +27,37 @@ const permissionMap: Record<string, Permission[]> = {
 };
 
 export const getUserRoleName = cache(async (userId: string) => {
-  const session = await requireSession();
   const record = await db.query.users.findFirst({
     where: eq(users.id, userId),
-    with: { role: true },
   });
 
-  if (!record?.role) {
+  if (!record?.roleId) {
     return null;
   }
 
-  return record.role.name;
+  const role = await db.query.roles.findFirst({
+    where: eq(roles.id, record.roleId),
+  });
+
+  return role?.name ?? null;
 });
 
 export const ensurePermission = cache(async (permission: Permission) => {
+  const tStart = Date.now();
+  console.log(`[PERF_LOG] [${tStart}] [5. Permission] - Starting check for: ${permission}`);
   const session = await requireSession();
+  
+  console.log(`[PERF_LOG] [${Date.now()}] [4. Tenant çözümü] - Tenant ID: ${session.user.tenantId}`);
+  
   const roleName = session.user.role ?? "";
   const allowed = permissionMap[roleName] ?? [];
 
   if (!allowed.includes(permission)) {
+    console.log(`[PERF_LOG] [${Date.now()}] [5. Permission] - FAILED`);
     redirect("/dashboard");
   }
 
+  console.log(`[PERF_LOG] [${Date.now()}] [5. Permission] - Completed (Success)`);
   return session;
 });
 

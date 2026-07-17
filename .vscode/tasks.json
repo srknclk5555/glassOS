@@ -1,0 +1,10 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Build Check (web only)",
+			"type": "shell",
+			"command": "cd \"c:\\Users\\srknc\\Desktop\\FABRİKA\\glassos\" && npx turbo run build --filter=web 2>&1"
+		}
+	]
+}

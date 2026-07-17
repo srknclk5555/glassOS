@@ -9,7 +9,7 @@ export default async function ProductDetailPage(props: any) {
   const row = await db.query.products.findFirst({
     where: session.user.role === "super_admin"
       ? eq(products.id, params.id)
-      : and(eq(products.id, params.id), eq(products.tenantId, session.user.tenantId), eq(products.active, true)),
+      : and(eq(products.id, params.id), eq(products.tenantId, session.user.tenantId), eq(products.isActive, true)),
   });
 
   if (!row) return <div>Not found or access denied</div>;

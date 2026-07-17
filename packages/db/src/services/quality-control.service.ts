@@ -1,8 +1,8 @@
-import { ProductionRepository } from "../repositories/production.repository.js";
-import { OrderLineRepository } from "../repositories/order-line.repository.js";
-import { OrderRepository } from "../repositories/order.repository.js";
-import { ReworkRepository } from "../repositories/rework.repository.js";
-import { withTenantSession } from "../db/transactions.js";
+import { ProductionRepository } from "../repositories/production.repository";
+import { OrderLineRepository } from "../repositories/order-line.repository";
+import { OrderRepository } from "../repositories/order.repository";
+import { ReworkRepository } from "../repositories/rework.repository";
+import { withTenantSession } from "../db/transactions";
 
 import type {
   InspectionStartedEvent,
@@ -12,7 +12,7 @@ import type {
   ReworkRequestedEvent,
   ReadyApprovedEvent,
   EventPublisher,
-} from "./events.js";
+} from "./events";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 

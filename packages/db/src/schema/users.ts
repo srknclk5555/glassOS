@@ -18,13 +18,9 @@ export const users = pgTable("users", {
   passwordHash: text("password_hash").notNull(),
   isActive: boolean("is_active").notNull().default(true),
 
-  // Standard columns
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
-  createdBy: char("created_by", { length: 26 }),
-  updatedBy: char("updated_by", { length: 26 }),
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
-  deletedBy: char("deleted_by", { length: 26 }),
 });
 
 export const userSessions = pgTable("user_sessions", {

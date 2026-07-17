@@ -1,7 +1,7 @@
-import { ProductionRepository } from "../repositories/production.repository.js";
-import { withTenantSession } from "../db/transactions.js";
+import { ProductionRepository } from "../repositories/production.repository";
+import { withTenantSession } from "../db/transactions";
 
-import type { ProductionTransferredEvent, EventPublisher } from "./events.js";
+import type { ProductionTransferredEvent, EventPublisher } from "./events";
 
 export class ProductionService {
   constructor(

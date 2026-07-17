@@ -1,12 +1,12 @@
-import { CustomerRepository } from "../repositories/customer.repository.js";
-import { withTenantSession } from "../db/transactions.js";
+import { CustomerRepository } from "../repositories/customer.repository";
+import { withTenantSession } from "../db/transactions";
 import type {
   DomainEvent,
   EventPublisher,
   CustomerCreatedEvent,
   CustomerUpdatedEvent,
   CustomerDeactivatedEvent,
-} from "./events.js";
+} from "./events";
 
 
 export class CustomerService {

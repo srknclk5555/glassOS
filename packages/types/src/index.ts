@@ -422,3 +422,172 @@ export const updateRoutingStepSchema = createRoutingStepSchema.extend({
   id: z.string().uuid("Invalid routing step ID"),
 });
 export type UpdateRoutingStepInput = z.infer<typeof updateRoutingStepSchema>;
+
+// ─── Machine Management Schemas (Sprint 2.8.0) ───────────────────────────────
+
+export const MACHINE_TYPES = [
+  "cutting", "grinding", "tempering", "insulating_glass",
+  "cnc", "drilling", "lamination", "washing",
+  "painting", "sandblasting", "quality", "dispatch",
+] as const;
+
+export const MACHINE_STATUSES = [
+  "active", "maintenance", "idle", "decommissioned",
+] as const;
+
+export type MachineType = typeof MACHINE_TYPES[number];
+export type MachineStatus = typeof MACHINE_STATUSES[number];
+
+export const createMachineSchema = z.object({
+  machineCode: z.string().min(1, "Machine code is required").max(50),
+  name: z.string().min(1, "Machine name is required").max(255),
+  machineType: z.enum(MACHINE_TYPES, { errorMap: () => ({ message: "Invalid machine type" }) }),
+  factoryId: z.string().length(26).optional().nullable(),
+  stationId: z.string().length(26).optional().nullable(),
+  brand: z.string().max(100).optional().nullable(),
+  model: z.string().max(100).optional().nullable(),
+  serialNumber: z.string().max(100).optional().nullable(),
+  manufactureYear: z.number().int().min(1900).max(2100).optional().nullable(),
+  purchasedAt: z.string().optional().nullable(),
+  commissionedAt: z.string().optional().nullable(),
+  warrantyStartsAt: z.string().optional().nullable(),
+  warrantyEndsAt: z.string().optional().nullable(),
+  status: z.enum(MACHINE_STATUSES).default("active"),
+  hourlyCapacity: z.number().positive().optional().nullable(),
+  dailyCapacity: z.number().positive().optional().nullable(),
+  maxGlassWidthMm: z.number().positive().optional().nullable(),
+  maxGlassHeightMm: z.number().positive().optional().nullable(),
+  maxThicknessMm: z.number().positive().optional().nullable(),
+  minThicknessMm: z.number().nonnegative().optional().nullable(),
+  notes: z.string().optional().nullable(),
+});
+export type CreateMachineInput = z.infer<typeof createMachineSchema>;
+
+export const updateMachineSchema = createMachineSchema.partial().extend({
+  id: z.string().length(26, "Invalid machine ID"),
+});
+export type UpdateMachineInput = z.infer<typeof updateMachineSchema>;
+
+// ─── Station Management Schemas (Sprint 2.8.2) ───────────────────────────────
+
+export const STATION_TYPES = [
+  "cutting", "grinding", "tempering", "insulating_glass",
+  "cnc", "drilling", "lamination", "washing",
+  "painting", "sandblasting", "quality", "dispatch",
+] as const;
+
+export type StationType = typeof STATION_TYPES[number];
+
+export const createStationSchema = z.object({
+  stationCode: z.string().min(1, "Station code is required").max(50),
+  name: z.string().min(1, "Station name is required").max(255),
+  description: z.string().optional().nullable(),
+  stationType: z.enum(STATION_TYPES, { errorMap: () => ({ message: "Invalid station type" }) }),
+  factoryId: z.string().length(26).optional().nullable(),
+  sortOrder: z.number().int().min(0).default(0),
+  maxConcurrentJobs: z.number().int().min(1).default(1),
+  maxMachines: z.number().int().min(0).optional().nullable(),
+  maxOperators: z.number().int().min(0).optional().nullable(),
+  isActive: z.boolean().default(true),
+  notes: z.string().optional().nullable(),
+});
+export type CreateStationInput = z.infer<typeof createStationSchema>;
+
+export const updateStationSchema = createStationSchema.partial().extend({
+  id: z.string().length(26, "Invalid station ID"),
+});
+export type UpdateStationInput = z.infer<typeof updateStationSchema>;
+
+export const assignMachineToStationSchema = z.object({
+  stationId: z.string().length(26),
+  machineId: z.string().length(26),
+  isPrimary: z.boolean().default(false),
+});
+export type AssignMachineToStationInput = z.infer<typeof assignMachineToStationSchema>;
+
+export const assignPersonnelToStationSchema = z.object({
+  stationId: z.string().length(26),
+  personnelId: z.string().length(26),
+  isHeadOperator: z.boolean().default(false),
+});
+export type AssignPersonnelToStationInput = z.infer<typeof assignPersonnelToStationSchema>;
+
+// ─── Personnel Management Schemas (Sprint 2.8.1) ────────────────────────────
+
+export const PERSONNEL_ROLES = [
+  "operator", "senior_operator", "supervisor", "manager",
+] as const;
+
+export type PersonnelRole = typeof PERSONNEL_ROLES[number];
+
+export const ASSIGNMENT_TYPES = [
+  "primary", "assistant", "temporary",
+] as const;
+
+export type AssignmentType = typeof ASSIGNMENT_TYPES[number];
+
+export const PERMISSION_LEVELS = [
+  "view", "operate", "supervise",
+] as const;
+
+export type PermissionLevel = typeof PERMISSION_LEVELS[number];
+
+export const createPersonnelSchema = z.object({
+  personnelCode: z.string().min(1, "Personnel code is required").max(100),
+  firstName: z.string().min(1, "First name is required").max(100),
+  lastName: z.string().min(1, "Last name is required").max(100),
+  titleId: z.string().length(26).optional().nullable(),
+  role: z.enum(PERSONNEL_ROLES).default("operator"),
+  phone: z.string().max(50).optional().nullable(),
+  email: z.string().email().max(255).optional().nullable(),
+  isActive: z.boolean().default(true),
+  hiredAt: z.string().optional().nullable(),
+  notes: z.string().optional().nullable(),
+});
+export type CreatePersonnelInput = z.infer<typeof createPersonnelSchema>;
+
+export const updatePersonnelSchema = createPersonnelSchema.partial().extend({
+  id: z.string().length(26, "Invalid personnel ID"),
+});
+export type UpdatePersonnelInput = z.infer<typeof updatePersonnelSchema>;
+
+export const createMachineAssignmentSchema = z.object({
+  personnelId: z.string().length(26),
+  machineId: z.string().length(26),
+  assignmentType: z.enum(ASSIGNMENT_TYPES).default("primary"),
+});
+export type CreateMachineAssignmentInput = z.infer<typeof createMachineAssignmentSchema>;
+
+export const createStationPermissionSchema = z.object({
+  personnelId: z.string().length(26),
+  stationId: z.string().length(26),
+  permissionLevel: z.enum(PERMISSION_LEVELS).default("operate"),
+});
+export type CreateStationPermissionInput = z.infer<typeof createStationPermissionSchema>;
+
+export const createPersonnelCertificateSchema = z.object({
+  personnelId: z.string().length(26),
+  certificateType: z.string().min(1, "Certificate type is required").max(100),
+  issuedAt: z.string().min(1, "Issue date is required"),
+  expiresAt: z.string().optional().nullable(),
+  documentUrl: z.string().optional().nullable(),
+});
+export type CreatePersonnelCertificateInput = z.infer<typeof createPersonnelCertificateSchema>;
+
+export const createEmergencyContactSchema = z.object({
+  personnelId: z.string().length(26),
+  contactName: z.string().min(1, "Contact name is required").max(255),
+  relationship: z.string().min(1, "Relationship is required").max(100),
+  phone: z.string().min(1, "Phone is required").max(50),
+});
+export type CreateEmergencyContactInput = z.infer<typeof createEmergencyContactSchema>;
+
+export const createPersonnelShiftSchema = z.object({
+  personnelId: z.string().length(26),
+  shiftName: z.string().min(1, "Shift name is required").max(100),
+  startsAt: z.string().regex(/^\d{2}:\d{2}$/, "Invalid start time (HH:MM)"),
+  endsAt: z.string().regex(/^\d{2}:\d{2}$/, "Invalid end time (HH:MM)"),
+  daysOfWeek: z.array(z.number().int().min(0).max(6)).optional(),
+  isActive: z.boolean().default(true),
+});
+export type CreatePersonnelShiftInput = z.infer<typeof createPersonnelShiftSchema>;

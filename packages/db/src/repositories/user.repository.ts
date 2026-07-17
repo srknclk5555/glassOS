@@ -1,5 +1,5 @@
-import { users } from "../schema/index.js";
-import { BaseRepository } from "./base.repository.js";
+import { users } from "../schema/index";
+import { BaseRepository } from "./base.repository";
 
 export class UserRepository extends BaseRepository<any> {
   constructor(db: any) {

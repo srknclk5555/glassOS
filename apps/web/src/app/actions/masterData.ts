@@ -47,17 +47,17 @@ export async function createMaterialAction(input: unknown) {
       densityKgPerM3: parsed.data.densityKgPerM3 ?? null,
       defaultUnit: parsed.data.defaultUnit ?? "m2",
       notes: parsed.data.notes ?? null,
-      active: parsed.data.active ?? true,
+      isActive: parsed.data.active ?? true,
     }).returning({ id: materials.id });
 
     const created = inserted[0];
     await tx.insert(auditLogs).values({
       tenantId: session.user.tenantId,
-      actorId: session.user.id,
-      entityType: "material",
-      entityId: created.id,
-      action: "create",
-      details: { materialCode: parsed.data.materialCode, name: parsed.data.name },
+      changedBy: session.user.id,
+      tableName: "materials",
+      recordId: created.id,
+      operation: "create",
+      afterValue: { materialCode: parsed.data.materialCode, name: parsed.data.name },
     });
     revalidatePath("/materials");
     return created;
@@ -92,7 +92,7 @@ export async function updateMaterialAction(input: unknown) {
       densityKgPerM3: parsed.data.densityKgPerM3 ?? null,
       defaultUnit: parsed.data.defaultUnit ?? "m2",
       notes: parsed.data.notes ?? null,
-      active: parsed.data.active ?? true,
+      isActive: parsed.data.active ?? true,
       updatedAt: new Date(),
     }).where(condition).returning({ id: materials.id });
 
@@ -100,11 +100,11 @@ export async function updateMaterialAction(input: unknown) {
     if (!row) throw new Error("Material update failed");
     await tx.insert(auditLogs).values({
       tenantId: session.user.tenantId,
-      actorId: session.user.id,
-      entityType: "material",
-      entityId: row.id,
-      action: "update",
-      details: { materialCode: parsed.data.materialCode, name: parsed.data.name },
+      changedBy: session.user.id,
+      tableName: "materials",
+      recordId: row.id,
+      operation: "update",
+      afterValue: { materialCode: parsed.data.materialCode, name: parsed.data.name },
     });
     revalidatePath("/materials");
     return row;
@@ -121,16 +121,16 @@ export async function softDeleteMaterialAction(id: unknown) {
       ? eq(materials.id, id)
       : and(eq(materials.id, id), eq(materials.tenantId, session.user.tenantId));
 
-    const updated = await tx.update(materials).set({ active: false, updatedAt: new Date() }).where(condition).returning({ id: materials.id });
+    const updated = await tx.update(materials).set({ isActive: false, updatedAt: new Date() }).where(condition).returning({ id: materials.id });
     const row = updated[0];
     if (!row) throw new Error("Delete failed");
     await tx.insert(auditLogs).values({
       tenantId: session.user.tenantId,
-      actorId: session.user.id,
-      entityType: "material",
-      entityId: row.id,
-      action: "delete",
-      details: { id: row.id },
+      changedBy: session.user.id,
+      tableName: "materials",
+      recordId: row.id,
+      operation: "delete",
+      afterValue: { id: row.id },
     });
     revalidatePath("/materials");
     return row;
@@ -167,17 +167,17 @@ export async function createProductAction(input: unknown) {
       isTemper: parsed.data.isTemper ?? false,
       isInsulated: parsed.data.isInsulated ?? false,
       isLaminated: parsed.data.isLaminated ?? false,
-      active: parsed.data.active ?? true,
+      isActive: parsed.data.active ?? true,
     }).returning({ id: products.id });
 
     const created = inserted[0];
     await tx.insert(auditLogs).values({
       tenantId: session.user.tenantId,
-      actorId: session.user.id,
-      entityType: "product",
-      entityId: created.id,
-      action: "create",
-      details: { productCode: parsed.data.productCode, name: parsed.data.name },
+      changedBy: session.user.id,
+      tableName: "products",
+      recordId: created.id,
+      operation: "create",
+      afterValue: { productCode: parsed.data.productCode, name: parsed.data.name },
     });
     revalidatePath("/products");
     return created;
@@ -206,7 +206,7 @@ export async function updateProductAction(input: unknown) {
       isTemper: parsed.data.isTemper ?? false,
       isInsulated: parsed.data.isInsulated ?? false,
       isLaminated: parsed.data.isLaminated ?? false,
-      active: parsed.data.active ?? true,
+      isActive: parsed.data.active ?? true,
       updatedAt: new Date(),
     }).where(condition).returning({ id: products.id });
 
@@ -214,11 +214,11 @@ export async function updateProductAction(input: unknown) {
     if (!row) throw new Error("Product update failed");
     await tx.insert(auditLogs).values({
       tenantId: session.user.tenantId,
-      actorId: session.user.id,
-      entityType: "product",
-      entityId: row.id,
-      action: "update",
-      details: { productCode: parsed.data.productCode, name: parsed.data.name },
+      changedBy: session.user.id,
+      tableName: "products",
+      recordId: row.id,
+      operation: "update",
+      afterValue: { productCode: parsed.data.productCode, name: parsed.data.name },
     });
     revalidatePath("/products");
     return row;
@@ -235,16 +235,16 @@ export async function softDeleteProductAction(id: unknown) {
       ? eq(products.id, id)
       : and(eq(products.id, id), eq(products.tenantId, session.user.tenantId));
 
-    const updated = await tx.update(products).set({ active: false, updatedAt: new Date() }).where(condition).returning({ id: products.id });
+    const updated = await tx.update(products).set({ isActive: false, updatedAt: new Date() }).where(condition).returning({ id: products.id });
     const row = updated[0];
     if (!row) throw new Error("Delete failed");
     await tx.insert(auditLogs).values({
       tenantId: session.user.tenantId,
-      actorId: session.user.id,
-      entityType: "product",
-      entityId: row.id,
-      action: "delete",
-      details: { id: row.id },
+      changedBy: session.user.id,
+      tableName: "products",
+      recordId: row.id,
+      operation: "delete",
+      afterValue: { id: row.id },
     });
     revalidatePath("/products");
     return row;

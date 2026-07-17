@@ -1,2 +1,2 @@
-export { LocalEventPublisher } from "./local-event-publisher.js";
-export { InMemoryEventPublisher } from "./in-memory-event-publisher.js";
+export { LocalEventPublisher } from "./local-event-publisher";
+export { InMemoryEventPublisher } from "./in-memory-event-publisher";

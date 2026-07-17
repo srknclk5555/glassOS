@@ -1,5 +1,5 @@
 import { and, eq, isNull, isNotNull, or, sql, gte, lte, lt, gt, inArray } from "drizzle-orm";
-import { getTenantContext, getActiveDb } from "../db/transactions.js";
+import { getTenantContext, getActiveDb } from "../db/transactions";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 

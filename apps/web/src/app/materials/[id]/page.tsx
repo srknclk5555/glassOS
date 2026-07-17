@@ -9,7 +9,7 @@ export default async function MaterialDetailPage(props: any) {
   const row = await db.query.materials.findFirst({
     where: session.user.role === "super_admin"
       ? eq(materials.id, params.id)
-      : and(eq(materials.id, params.id), eq(materials.tenantId, session.user.tenantId), eq(materials.active, true)),
+      : and(eq(materials.id, params.id), eq(materials.tenantId, session.user.tenantId), eq(materials.isActive, true)),
   });
 
   if (!row) return <div>Not found or access denied</div>;

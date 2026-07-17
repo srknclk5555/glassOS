@@ -8,8 +8,8 @@ export default async function ProductsPage() {
 
   const rows = await db.query.products.findMany({
     where: session.user.role === "super_admin"
-      ? eq(products.active, true)
-      : and(eq(products.tenantId, session.user.tenantId), eq(products.active, true)),
+      ? eq(products.isActive, true)
+      : and(eq(products.tenantId, session.user.tenantId), eq(products.isActive, true)),
     columns: { id: true, productCode: true, name: true },
     orderBy: products.name,
   });

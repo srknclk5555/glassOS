@@ -4,12 +4,12 @@ This Turborepo starter is maintained by the Turborepo core team.
 
 ## Current Project Status
 
-- **Current Sprint:** Sprint 2.6.6 — Background Job Architecture (Enterprise Foundation)
-- **Current Milestone:** Sprint 2.6.6 completed (318 tests, 10 services, 45 domain events, background job infrastructure with in-memory queue, priority ordering, retry with exponential backoff)
+- **Current Sprint:** Sprint 2.7.0 — UI Foundation & Design System ✅
+- **Current Milestone:** Sprint 2.7.0 completed — `@repo/ui` design system with ~40+ components, dark-first theme system (TailwindCSS v4 + CSS variables), Radix UI primitives for accessibility, enterprise DataGrid, responsive layout system (Shell/Sidebar/TopBar), domain badges, overlay components (Dialog/Drawer/Sheet/Toast/CommandPalette), type-safe exports. All TypeScript validated with zero errors.
 - **Service Completion:** CustomerService, OrderService, ProductionService, ProductionQueueService, ReworkService, CuttingExecutionService, ProductionTransferService, StationOperationService, QualityControlService, DispatchService — 10 services, 45 domain events, all services wired through singleton EventPublisher in composition root
-- **Previous Sprint:** Sprint 2.6.5A ✅ — Event Publisher Production Wiring Fix (267 tests, composition root wiring)
-- **Architecture Lock:** `SERVICE_ARCHITECTURE.md` + `BACKGROUND_ARCHITECTURE.md` are the design references. All 318 tests passing, TypeScript zero errors.
-- **Architecture Freeze:** No schema, migration, or repository changes allowed.
+- **Previous Sprint:** Sprint 2.6.6 ✅ — Background Job Infrastructure (in-memory queue, priority ordering, retry with exponential backoff)
+- **Architecture Lock:** `SERVICE_ARCHITECTURE.md` + `BACKGROUND_ARCHITECTURE.md` + `UI_ARCHITECTURE.md` are the design references. All tests passing, TypeScript zero errors.
+- **Architecture Freeze:** No schema, migration, or repository changes allowed without Sprint Owner approval.
 
 ## Using this example
 

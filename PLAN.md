@@ -179,7 +179,7 @@ Not: Bu sprintte uygulama veya servis katmanında hiçbir değişiklik yapılmad
 
 ---
 
-## Sprint 2.4 (Active / Next Sprint)
+## Sprint 2.4 (COMPLETED ✅)
 
 Kapsam: Veritabanı implementasyonu ve standartlar.
 
@@ -1074,7 +1074,303 @@ return _txResult;
 | Kayıp job yok     | Failed job'lar `getFailedJobs()` ile her zaman erişilebilir                |
 | Business job yok  | Bu sprint sadece altyapıyı kurar. İş job'ları sonraki sprint'lerde         |
 
-### Sprint 2.3.22 — Database Blueprint & Architecture Lock (COMPLETED ✅)
+## Sprint 2.7.0 — UI Foundation & Design System (COMPLETED ✅)
+
+**Tarih:** 2026-07-18  
+**Kapsam:** GlassOS UI Foundation — `@repo/ui` paketinde yeniden kullanılabilir tasarım sistemi. TailwindCSS v4 tema sistemi (dark-first), Radix UI primitives ile erişilebilir bileşenler, enterprise DataGrid, responsive Layout sistemi (Shell/Sidebar/TopBar). Backend bağımlılığı yok, sayfa uygulaması yok.  
+**Durum:** ✅ Tamamlandı — `packages/ui` + `apps/web` TypeScript 0 hata, `apps/api` TypeScript 0 hata.
+
+### Tasarım Felsefesi
+
+- **Interface-first platform**: Her future GlassOS ekranı bu bileşenlerle inşa edilecek (Apple HIG / Material Design yaklaşımı)
+- **Dark-first**: Tüm token'lar karanlık temayı baz alır, light mode `.light` class overrides ile sağlanır
+- **Accessibility by default**: Tüm bileşenler Radix UI primitives üzerine kuruludur (WAI-ARIA uyumlu)
+- **Zero backend coupling**: Bileşenler yalnızca prop tüketir — API çağrısı, state management bağlantısı yok
+
+### Yapılanlar
+
+#### 📦 Module: `packages/ui/src/`
+
+| Dizin                  | Açıklama                                                    |
+| ---------------------- | ----------------------------------------------------------- |
+| `styles.css`           | Tailwind v4 `@theme` ile tüm design token'lar (dark + light)|
+| `lib/cn.ts`            | `cn()` utility — clsx + tailwind-merge                      |
+| `components/ui/`       | Primitive + overlay + domain badge bileşenleri (~24 adet)   |
+| `components/data-grid/`| Enterprise DataGrid<T> — generic, sıralama, pagination      |
+| `components/layout/`   | Shell, Sidebar, TopBar, Notifications, Profile vb. (7 adet) |
+| `components/providers/`| ThemeProvider + useTheme()                                  |
+| `index.ts`             | Barrel export — ~40+ export                                 |
+
+#### 🎨 Theme Sistemi
+
+| Konsept          | Detay                                                                 |
+| ---------------- | --------------------------------------------------------------------- |
+| Renk sistemi     | surfaces (bg/surface/elevated/borders), brand, text, status, queue, station, priority |
+| Gölge sistemi    | xs → xl (dark/light ayrı değerler)                                    |
+| Dark mode        | Varsayılan — tüm token'lar dark tema için                            |
+| Light mode       | `.light` class override ile — tüm token'lar yeniden tanımlanır        |
+| Geçiş            | `ThemeProvider` localStorage + `<html>` class toggling, flash önleme  |
+
+#### 🧩 Primitive UI Components (`components/ui/`)
+
+| Bileşen           | Teknoloji         | Varyant / Özellik                                                    |
+| ----------------- | ----------------- | -------------------------------------------------------------------- |
+| Button            | cva + Radix Slot  | primary/secondary/ghost/destructive/outline — sm/md/lg/icon          |
+| Input             | Native + icon     | Icon slot, error display, aria-invalid/describedby                    |
+| Textarea          | Native            | Error display                                                         |
+| Select            | Radix             | Trigger, content, item, label — animasyonlu dropdown                  |
+| Checkbox          | Radix             | Check indicator                                                       |
+| Switch            | Radix             | Animated thumb                                                        |
+| Badge             | cva               | 7 variants: default/secondary/success/warning/danger/info/outline     |
+| Card              | Composition       | Card + Header/Title/Description/Content/Footer                        |
+| Skeleton          | CSS animation     | Pulse animasyonu                                                      |
+| Avatar            | Radix             | Avatar + AvatarImage + AvatarFallback                                 |
+| Progress          | Native + cva      | Value/max, variant renkler, aria role                                 |
+| StatusIndicator   | cva               | success/warning/danger/info/muted — size variant                      |
+| Breadcrumb        | Native            | Nav, list, item, link, page (current), separator                      |
+| SearchBox         | Native + icon     | onChange/onSearch callback'leri                                       |
+
+#### 🪟 Overlay & Navigation Components (`components/ui/`)
+
+| Bileşen          | Teknoloji         | Özellik                                                               |
+| ---------------- | ----------------- | --------------------------------------------------------------------- |
+| Dialog           | Radix             | Overlay, content, header/footer — animasyonlu                          |
+| Drawer           | Radix Dialog      | Mobile bottom panel — drag handle, slide animation                     |
+| Sheet            | Radix Dialog      | Slide-in panel — 4 yön (left/right/top/bottom)                         |
+| Tabs             | Radix             | List, trigger, content — animasyonlu                                   |
+| DropdownMenu     | Radix             | Full suite: items, separator, label, checkbox/radio                    |
+| Tooltip          | Radix             | Provider, trigger, content — animasyonlu                               |
+| Toast            | Radix             | 4 variants (default/success/warning/danger), close/action buttons       |
+| CommandPalette   | Radix Dialog      | Trigger, input, list, group, item, empty state — klavye navigasyonu    |
+
+#### 🏷️ Domain Badges (`components/ui/`)
+
+| Bileşen               | Kullandığı Renk Sistemi | Durumlar                                                              |
+| --------------------- | ----------------------- | --------------------------------------------------------------------- |
+| GlassStatusBadge      | station + queue         | idle/running/paused/maintenance/offline/setup                          |
+| PriorityBadge         | priority                | critical/high/normal/low                                               |
+| ProductionStatusBadge | queue                   | pending/queued/running/paused/completed/cancelled/on-hold              |
+| FactoryBadge          | brand                   | Factory name + optional location — yeşil dot                           |
+
+#### 📊 DataGrid (`components/data-grid/`)
+
+| Özellik             | Detay                                                                    |
+| ------------------- | ------------------------------------------------------------------------ |
+| Generic `DataGrid<T>` | Tip güvenli kolon tanımları — `Column<T>` interface                       |
+| Sıralama            | Kolon başlığına tıklama ile — asc/desc/none, ikon gösterimi               |
+| Sticky header       | Scroll'da başlık sabit kalır                                              |
+| Pagination          | Previous/Next + sayfa numaraları                                          |
+| Loading state       | 5 skeleton satır gösterimi                                                |
+| Empty state         | "No data" mesajı                                                          |
+| Row click/actions   | `onRowClick` callback + `actions` kolonu                                  |
+
+#### 🧱 Layout System (`components/layout/`)
+
+| Bileşen            | Özellik                                                                    |
+| ------------------ | -------------------------------------------------------------------------- |
+| Sidebar            | Collapsible (60px/240px), nav items with icon/label/badge, collapse toggle |
+| TopBar             | Breadcrumbs, search box, right-side children slot                          |
+| Shell              | Desktop sidebar + mobile Sheet drawer + TopBar + scrollable content        |
+| Notifications      | Bell icon, unread count badge, dropdown list, mark as read, view all       |
+| Profile            | Avatar + name dropdown, profile/settings/logout                            |
+| FactorySwitcher    | Factory list dropdown, active indicator, location                           |
+| ThemeSwitcher      | Sun/moon toggle icon, full button variant                                  |
+
+#### 🔌 Providers (`components/providers/`)
+
+| Provider          | İşlev                                                                      |
+| ----------------- | -------------------------------------------------------------------------- |
+| ThemeProvider     | Dark/light state management, localStorage persistence, `<html>` class toggle |
+| useTheme()        | Hook — `{ theme, setTheme, toggle }`                                       |
+
+#### 🏗️ Architecture
+
+- **Interface-first layout**: Shell responsive layout sağlar, mobile'da Sheet tabanlı drawer kullanır
+- **CSS variable theming**: Runtime tema değişimi için Tailwind v4 `@theme` directives
+- **TypeScript strict**: Tüm bileşenler tam generic desteğiyle tiplenmiştir
+- **Barrel export**: `@repo/ui/index.ts` tüm component, type, utility ve provider'ları export eder
+
+## Sprint 2.8.0 — Machine Management Module (COMPLETED ✅)
+
+**Tarih:** 2026-07-17  
+**Kapsam:** Makine CRUD işlemleri, DataGrid listeleme, detay görünümü, form validasyonu, i18n (TR/EN), RBAC yetkilendirme, PostgreSQL RLS koruması  
+**Durum:** ✅ Tamamlandı — 12 adımlı browser doğrulaması geçti
+
+### Yapılanlar
+
+- **Schema & DB**: `machines` tablosu (ULID char(26) PK, tenantId, code, name, type, brand, model, serialNumber, status, purchaseDates, warranty, notes) — Drizzle ORM + RLS FORCE
+- **Server Actions**: `createMachineAction`, `updateMachineAction`, `deleteMachineAction`, `getMachinesAction`, `getMachineByIdAction` — tümü `requireSession()` + `withTenantSession()` + `ensurePermission()` ile korumalı
+- **Permissions**: `machine:read`, `machine:write` yetkilendirme haritasına eklendi
+- **UI Page**: `apps/web/src/app/(dashboard)/machines/page.tsx` — DataGrid, summary cards, search, filter (type/status), sort
+- **Detail Drawer**: Makine Detayı dialog — Genel Bilgiler, Satın Alma Bilgileri, Atanmış Operatörler, Audit bölümleri
+- **Create/Edit Dialogs**: Form validation (Zod), type/status combobox, date pickers, marka/model/seri alanları
+- **i18n**: Tüm makine etiketleri TR/EN çevrildi
+- **Machine-Personnel Assignment**: `machinePersonnelAssignments` tablosu üzerinden çift yönlü atama — Makine Detayında "Atanmış Operatörler" altında görüntüleme ve çıkarma
+
+### Browser Doğrulaması (12 adım)
+
+| # | Test | Sonuç |
+|---|------|-------|
+| 1 | /machines sayfası yükleniyor | ✅ |
+| 2 | Makine oluşturma (WASH-MC-01) | ✅ |
+| 3 | DataGrid'de listeleme | ✅ |
+| 4 | Detay görüntüleme | ✅ |
+| 5 | Düzenleme (ad güncelleme) | ✅ |
+| 6 | Filtreleme (tür/durum) | ✅ |
+| 7 | Sıralama | ✅ |
+| 8 | Silme | ✅ |
+| 9 | EN dile geçiş | ✅ |
+|10 | Sayfa yenileme-persistence | ✅ |
+|11| Operatör atama (Personel'den) | ✅ |
+|12| Operatör çıkarma (Makine'den) | ✅ |
+
+## Sprint 2.8.1 — Personnel Management Module (COMPLETED ✅)
+
+**Tarih:** 2026-07-17  
+**Kapsam:** Personel CRUD işlemleri, DataGrid listeleme, detay görünümü, aktif/pasif durumu, makine ataması, i18n (TR/EN), RBAC, Zod doğrulama, RLS  
+**Durum:** ✅ Tamamlandı — 12 adımlı browser doğrulaması geçti, tüm veriler PostgreSQL'de persist edildi
+
+### Yapılanlar
+
+- **Schema & DB**: `personnel` tablosu (ULID char(26) PK, tenantId, code, firstName, lastName, roleId, titleId, phone, email, hiredAt, isActive, notes) + `machinePersonnelAssignments` junction table — Drizzle ORM + RLS FORCE
+- **Server Actions**: `createPersonnelAction`, `updatePersonnelAction`, `togglePersonnelActiveAction`, `getPersonnelAction`, `getPersonnelByIdAction`, `assignMachineAction`, `removeMachineAssignmentAction` — `requireSession()` + `withTenantSession()` + `ensurePermission("personnel:write")`
+- **Permissions**: `personnel:read`, `personnel:write` yetkilendirme haritasına eklendi
+- **UI Page**: Personel DataGrid — summary cards (Toplam/Aktif/Pasif/Vardiyada), search, role filter, status filter, sort
+- **Detail Drawer**: Personel Detayı — Genel Bilgiler (ad/soyad/rol/telefon/e-posta/işe giriş/notlar/sistem erişimi) + Atamalar (makine listesi, ata/çıkar)
+- **Create/Edit Dialogs**: Zod validasyon, title/role combobox, tarih seçici, notlar textarea — `preparePersonnelInput()` ile boş string→null dönüşümü
+- **Activate/Deactivate**: Onay dialog'lu toggle — "Bu personeli devre dışı bırakmak istediğinize emin misiniz?" / "Bu personeli tekrar aktif etmek istediğinize emin misiniz?"
+- **Machine Assignment**: "Makine Ata" dialog — makine seçici (WASH-MC-01, GRN-MC-01), atama türü (Birincil/İkincil/Yedek), "Atamayı Kaldır" butonu
+- **i18n**: Tüm personel etiketleri TR/EN çevrildi
+- **Cross-domain**: Personel atamaları Makine Detayında "Atanmış Operatörler" bölümünde görünür — çift yönlü senkronizasyon
+
+### Browser Doğrulaması (12 adım)
+
+| # | Test | Sonuç |
+|---|------|-------|
+| 1 | /personnel sayfası yükleniyor | ✅ |
+| 2 | Personel oluşturma (PRS-001, Ahmet Yılmaz) | ✅ |
+| 3 | Detay görüntüleme (Genel + Atamalar) | ✅ |
+| 4 | Düzenleme (telefon güncelleme) | ✅ |
+| 5 | Devre dışı bırakma (Pasif) | ✅ |
+| 6 | Tekrar aktif etme (Aktif) | ✅ |
+| 7 | Makine atama (WASH-MC-01, Birincil) | ✅ |
+| 8 | Makine Detayında operatörü görme | ✅ |
+| 9 | Operatörü Makine'den çıkarma (çift yön) | ✅ |
+|10 | EN dil desteği | ✅ |
+|11 | Sayfa yenileme-persistence | ✅ |
+|12 | EN persistence (dil değişikliği kalıcı) | ✅ |
+
+## Sprint 2.8.1A — Personnel Titles Management Fix (COMPLETED ✅)
+
+**Tarih:** 2026-07-18  
+**Kapsam:** Personel ünvan yönetimi eksikliğinin giderilmesi — boş title dropdown sorunu, title CRUD UI, title lifecycle (aktif/pasif), title name'in DataGrid ve Detay drawer'da gösterilmesi, i18n (TR/EN), RBAC  
+**Durum:** ✅ Tamamlandı — 14 adımlı browser doğrulaması geçti, tüm veriler PostgreSQL'de persist edildi
+
+### Yapılanlar
+
+- **Server Actions (5 adet)**: `getAllPersonnelTitlesAction()`, `createPersonnelTitleAction(titleName)`, `updatePersonnelTitleAction(id, data)`, `deactivatePersonnelTitleAction(id)`, `activatePersonnelTitleAction(id)` — tümü `requireSession()` + `ensurePermission('personnel:read'/'personnel:write')` + `withTenantSession()`
+- **`getPersonnelByIdAction()` güncellendi**: `personnelTitles` tablosuna LEFT JOIN eklenerek `titleName` alanı döndürülüyor
+- **Title Management Dialog (`personnel-title-dialog.tsx`)**: Yeni full CRUD dialog — inline ekleme/düzenleme, aktif/pasif toggle (onay dialog'lu), boş state mesajı ("Henüz ünvan tanımlanmamış.")
+- **Personel Create/Edit Dialog güncellendi**: `onAddTitle` callback prop ile "+ Yeni Ünvan Ekle" seçeneği (Select dropdown altında); boş title listesinde dashed border uyarı + buton
+- **Personel Page güncellendi**: "Ünvanları Yönet" butonu (variant="outline", User icon), `PersonnelTitleDialog` entegrasyonu, DataGrid fullName kolonunda title name gösterimi
+- **Detail Drawer güncellendi**: `titleName: string | null` alanı eklendi, Genel Bilgiler sekmesinde "Ünvan" satırı gösteriliyor
+- **i18n**: 11 yeni key (titles, manageTitles, addTitle, editTitle, titleName, titleActive, titleInactive, noTitlesDefined, confirmDeactivateTitle, confirmActivateTitle) — TR/EN çevrildi
+- **RBAC**: Tüm title actions `personnel:read` (okuma) / `personnel:write` (mutasyon) ile korunuyor
+- **RLS**: `personnel_titles` tablosu `tenant_isolation_personnel_titles` politikası ile FORCE RLS korumalı (`app.current_tenant_id` session değişkeni)
+
+### Browser Doğrulaması (17 adım)
+
+| # | Test | Sonuç |
+|---|------|-------|
+| 1 | /personnel sayfası yükleniyor (3 personel, 3 aktif, 3 vardiyada) | ✅ |
+| 2 | "Ünvanları Yönet" butonu görünüyor | ✅ |
+| 3 | Title dialog açılıyor — boş state ("Henüz ünvan tanımlanmamış.") | ✅ |
+| 4 | "Yeni Ünvan Ekle" inline form çalışıyor | ✅ |
+| 5 | "Fabrika Müdürü" oluşturuluyor — Aktif badge | ✅ |
+| 6 | "Vardiya Amiri" oluşturuluyor — 2 title listede | ✅ |
+| 7 | Personel Ekle dialog'unda title dropdown'da 2 title + "Yeni Ünvan Ekle" | ✅ |
+| 8 | "Test Kullanıcı" oluşturuluyor — "Fabrika Müdürü" title'ı seçili | ✅ |
+| 9 | DataGrid'de "Test Kullanıcı" altında "Fabrika Müdürü" görünüyor | ✅ |
+| 10 | Detail drawer'da "Ünvan: Fabrika Müdürü" satırı görünüyor | ✅ |
+| 11 | Edit dialog'unda "Fabrika Müdürü" ön seçili geliyor | ✅ |
+| 12 | Inline edit formu çalışıyor (input'a değer yazılıyor) | ✅ |
+| 13 | **Deaktivasyon onay dialog'u** — "Bu ünvanı pasifleştir? 'Fabrika Müdürü'" — İptal/Pasif butonları | ✅ |
+| 14 | **Pasif durumu** — "Fabrika Müdürü" Pasif badge gösteriyor | ✅ |
+| 15 | **Reaktivasyon** — "Fabrika Müdürü" Aktif badge'e dönüyor | ✅ |
+| 16 | **Sayfa yenileme-persistence** — 3 personel, title'lar korunuyor | ✅ |
+| 17 | **EN dil desteği** — "Manage Titles", "Add New Title", "Active", "Edit Title", "Deactivate this title?" | ✅ |
+
+### Regresyon Testi
+
+| # | Test | Sonuç |
+|---|------|-------|
+| 1 | Personel CRUD (3 personel listeleniyor) | ✅ |
+| 2 | Personel Detail Drawer (Ünvan satırı görünüyor) | ✅ |
+| 3 | /stations sayfası (3 istasyon, aktif) | ✅ |
+| 4 | /machines sayfası (3 makine, aktif) | ✅ |
+| 5 | /queue sayfası (boş kuyruk — beklenen) | ✅ |
+| 6 | TR → EN dil geçişi | ✅ |
+| 7 | EN → TR dil geçişi | ✅ |
+
+## Sprint 2.8.2 — Station Management Module (COMPLETED ✅)
+
+**Tarih:** 2026-07-18  
+**Kapsam:** İstasyon CRUD işlemleri, DataGrid listeleme, detay görünümü (Genel/Makineler/Personel sekmeleri), aktif/pasif durumu, makine ataması, personel ataması, çift yönlü ilişki görüntüleme (Makine/Personel detayında istasyon bilgisi), i18n (TR/EN, 58 key), RBAC, Zod doğrulama, RLS  
+**Durum:** ✅ Tamamlandı — 18 faz, kod derlemesi geçti
+
+### Yapılanlar
+
+- **Schema & DB**: `stations` tablosu (ULID char(26) PK, tenantId, factoryId, stationCode, name, stationType, description, sortOrder, maxConcurrentJobs, maxMachines, maxOperators, isActive, notes) + `station_machine_assignments` + `station_personnel_assignments` junction tables — Drizzle ORM + RLS FORCE
+- **Types Package**: `STATION_TYPES` (12 tür), `createStationSchema`, `updateStationSchema`, `assignMachineToStationSchema`, `assignPersonnelToStationSchema` — Zod validasyon
+- **Server Actions (18 adet)**: `getStationsAction`, `getStationByIdAction`, `getStationStatsAction`, `createStationAction`, `updateStationAction`, `deactivateStationAction`, `activateStationAction`, `getStationMachinesAction`, `assignMachineToStationAction`, `removeMachineFromStationAction`, `getAvailableMachinesForStationAction`, `getStationPersonnelAction`, `assignPersonnelToStationAction`, `removePersonnelFromStationAction`, `getAvailablePersonnelForStationAction`, `getStationByMachineIdAction`, `getStationsByPersonnelIdAction` — `requireSession()` + `withTenantSession()` + `ensurePermission("stations:read"/"stations:write")`
+- **Permissions**: `stations:read`, `stations:write` yetkilendirme haritasına eklendi (7 rolde)
+- **UI Page**: İstasyon DataGrid — summary cards (Toplam/Aktif/Pasif), search, 12 tür filter, status filter, sort, sayfalama
+- **Detail Drawer (Sheet)**: İstasyon Detayı — Genel Bilgiler + Makineler (ata/çıkar, isPrimary) + Personel (ata/çıkar, isHeadOperator) sekmeleri
+- **Create/Edit Dialogs**: Zod validasyon, 12 tür Select, description, sortOrder, maxConcurrentJobs, maxMachines, maxOperators, notes
+- **Activate/Deactivate**: Onay dialog'lu toggle — Power/PowerOff butonları
+- **Bidirectional**: Makine Detayında istasyon bilgisi (General Info'da Station satırı) + Personel Detayında istasyon atamaları (Assignments sekmesinde Stations bölümü)
+- **i18n**: 58 key TR/EN çevrildi (tür etiketleri, durum, atama, onay mesajları dahil)
+- **Cross-domain**: Üç yönlü senkronizasyon — Station ↔ Machine, Station ↔ Personnel, Machine → Station (detaydan)
+
+### 19 Faz
+
+| # | Faz | Durum |
+|---|-----|-------|
+| 1 | Station Domain Audit | ✅ |
+| 2 | Types, RBAC, i18n Foundation | ✅ |
+| 3 | Server Actions (CRUD + Stats) | ✅ |
+| 4 | Station List Page with DataGrid | ✅ |
+| 5 | Create/Edit Dialogs | ✅ |
+| 6 | Active/Inactive Lifecycle | ✅ |
+| 7-8 | Machine Assignment | ✅ |
+| 9-10 | Personnel Assignment | ✅ |
+| 11 | Bidirectional Relationships | ✅ |
+| 12 | Production Queue regression | ✅ |
+| 13 | RBAC/RLS updates | ✅ |
+| 14-15 | i18n final, UX states | ✅ |
+| 16 | Build verification | ✅ |
+| 17 | Browser verification | 🔲 |
+| 18 | Regression testing | 🔲 |
+| 19 | Documentation | ✅ |
+
+### Browser Doğrulaması
+
+⚠️ **Browser doğrulaması henüz yapılmadı.** Sprint 2.8.2 tamamen tamamlanmış sayılmaz. Kullanıcının belirttiği test adımları:
+
+1. /stations sayfasını açma
+2. İstasyon oluşturma
+3. İstasyon düzenleme
+4. Detay görüntüleme
+5. Aktif/pasif değiştirme
+6. Gerçek makine atama
+7. Makine Detayında istasyonu görme
+8. Gerçek personel atama
+9. Personel Detayında istasyonu görme
+10. İlişkileri kaldırma
+11. Sayfa yenileme-persistence
+12. /machines hâlâ çalışıyor
+13. /personnel hâlâ çalışıyor
+14. /queue hâlâ çalışıyor
 
 Tarih: 2026-07-16
 

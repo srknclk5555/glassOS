@@ -319,3 +319,36 @@
   - Database growth remains controlled because production history is recorded as counter and event data rather than per-piece entities.
   - Operator screens remain focused on production progress and recovery flow instead of noisy piece-level records.
   - Rework, breakage, and fire handling remain traceable while preserving the original order-line lifecycle.
+
+## ADR-2026-07-17-01: Machine-Personnel bidirectional assignment via junction table
+
+- Status: Accepted
+- Date: 2026-07-17
+- Context: Personnel (operators) need to be assigned to machines for production tracking. Assignments must be visible and manageable from both the Personnel detail (Atamalar tab) and Machine detail (Atanmış Operatörler section). Removal must work from either side.
+- Decision: Create a `machinePersonnelAssignments` junction table with `machineId`, `personnelId`, `assignmentType` (Birincil/İkincil/Yedek), `assignedAt`, and `assignedById`. Both machine detail and personnel detail queries join this table. Server actions `assignMachineAction` and `removeMachineAssignmentAction` handle mutations, both sides re-fetch after mutation.
+- Consequences:
+  - Single source of truth for assignments — no dual-write risk
+  - Bidirectional queries are simple JOINs on the same table
+  - Cascade delete ensures cleanup on machine or personnel deletion
+
+## ADR-2026-07-17-02: Personnel toggleActive confirmation pattern
+
+- Status: Accepted
+- Date: 2026-07-17
+- Context: Personnel deactivation/reactivation is a sensitive operation. A simple toggle without confirmation could lead to accidental deactivations affecting production assignments.
+- Decision: Implement `togglePersonnelActiveAction` as a single server action that flips `isActive`. The UI shows a confirmation dialog ("Bu personeli devre dışı bırakmak istediğinize emin misiniz?" / "Bu personeli tekrar aktif etmek istediğinize emin misiniz?") before calling the action. The action button icon and tooltip change based on current status (power-off icon for active, power-on icon for inactive).
+- Consequences:
+  - Accidental deactivation prevented by confirmation step
+  - Single action handles both directions — no separate activate/deactivate actions
+  - Status change is immediate after confirmation, no intermediate "pending" state
+
+## ADR-2026-07-17-03: Empty string → null normalization for optional Zod fields
+
+- Status: Accepted
+- Date: 2026-07-17
+- Context: Zod's `z.string().length(26).optional().nullable()` rejects empty strings ("") because empty string fails `.length(26)`. HTML form inputs send empty string for unset optional fields (e.g., titleId when no title selected).
+- Decision: Create `preparePersonnelInput()` utility that converts empty strings to null for a predefined set of optional fields (`titleId`, `phone`, `email`, `hiredAt`, `notes`) before passing to `safeParse()`. This pattern runs before both `createPersonnelSchema` and `updatePersonnelSchema`.
+- Consequences:
+  - Zod schemas remain strict about actual validation rules
+  - Form/API layer handles HTML empty-string normalization
+  - Pattern is reusable across future modules with similar optional ULID/date fields

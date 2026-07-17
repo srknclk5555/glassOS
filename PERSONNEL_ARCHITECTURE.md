@@ -3,9 +3,11 @@
 ## Status
 
 - Architecture Status: Implemented
-- Implementation Status: Documented
-- Validation Status: N/A
-- Last Updated: 2026-07-16
+- Implementation Status: Implemented (Sprint 2.8.1 — Temel CRUD + Makine Ataması)
+- Validation Status: Passed (Browser doğrulaması — 12/12 adım)
+- Last Updated: 2026-07-17
+
+> **Not:** Aşağıdaki bölümler (istasyon yetkileri, vardiyalar, sağlık bilgisi, sertifikalar vb.) henüz uygulanmamıştır — ileriki sprintlerde eklenecektir.
 
 ## 1. Personnel Card
 

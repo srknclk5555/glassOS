@@ -375,6 +375,38 @@ export interface DispatchCancelledEvent {
   readonly cancelledAt: Date;
 }
 
+// ─── Sprint 2.8.0 — Machine Lifecycle Events ────────────────────────────────
+
+export interface MachineCreatedEvent {
+  readonly eventType: "machine.created";
+  readonly machineId: string;
+  readonly machineCode: string;
+  readonly name: string;
+  readonly machineType: string;
+  readonly createdAt: Date;
+}
+
+export interface MachineUpdatedEvent {
+  readonly eventType: "machine.updated";
+  readonly machineId: string;
+  readonly changes: string[];
+  readonly updatedAt: Date;
+}
+
+export interface MachineDeactivatedEvent {
+  readonly eventType: "machine.deactivated";
+  readonly machineId: string;
+  readonly deactivatedAt: Date;
+}
+
+export interface MachineStatusChangedEvent {
+  readonly eventType: "machine.status.changed";
+  readonly machineId: string;
+  readonly fromStatus: string;
+  readonly toStatus: string;
+  readonly changedAt: Date;
+}
+
 // ─── Sprint 2.6.5A — Customer Lifecycle Events ───────────────────────────────
 
 export interface CustomerCreatedEvent {
@@ -445,7 +477,11 @@ export type DomainEvent =
   | ShipmentStartedEvent
   | DeliveryCompletedEvent
   | PartialDeliveryCompletedEvent
-  | DispatchCancelledEvent;
+  | DispatchCancelledEvent
+  | MachineCreatedEvent
+  | MachineUpdatedEvent
+  | MachineDeactivatedEvent
+  | MachineStatusChangedEvent;
 
 // ─── Event Publisher Interface (for future DI) ───────────────────────────────
 
