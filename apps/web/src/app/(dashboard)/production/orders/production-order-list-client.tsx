@@ -494,7 +494,7 @@ export function ProductionOrderListClient() {
               </button>
               <button
                 onClick={() => {
-                  const today = new Date().toISOString().split("T")[0];
+                  const today = new Date().toISOString().split("T")[0]!;
                   handleSearch(today);
                 }}
                 className="w-full flex items-center gap-2 rounded-md px-2.5 py-1.5 text-xs text-text-secondary hover:bg-glass-surface/50 transition-colors"
@@ -632,7 +632,7 @@ export function ProductionOrderListClient() {
                 return (
                   <Button
                     key={pageNum}
-                    variant={pageNum === page ? "default" : "ghost"}
+                    variant={pageNum === page ? "primary" : "ghost"}
                     size="sm"
                     className={`h-7 min-w-7 p-0 text-xs ${pageNum === page ? "" : "text-text-secondary"}`}
                     onClick={() => setPage(pageNum)}

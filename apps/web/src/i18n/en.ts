@@ -10,7 +10,7 @@ const en: TranslationDict = {
     noNotifications: "No notifications",
     viewAllNotifications: "View all notifications",
     loading: "Loading...",
-    all: "All",
+    //all: "All",
     save: "Save",
     cancel: "Cancel",
     delete: "Delete",

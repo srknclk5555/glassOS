@@ -501,6 +501,21 @@ export function GoodsReceiptDialog({ open, onOpenChange, onSave }: GoodsReceiptD
                     </div>
                   </div>
 
+                  {/* ── Live Calculation Banner ── */}
+                  {parseFloat(item.plateCount) > 0 && parseFloat(item.widthMm) > 0 && parseFloat(item.heightMm) > 0 && (
+                    <div className="col-span-3 rounded-lg border border-blue-200 bg-blue-50/60 p-2.5 text-xs text-blue-900 dark:border-blue-800/60 dark:bg-blue-950/40 dark:text-blue-200 flex items-center justify-between shadow-xs">
+                      <span className="flex items-center gap-1.5 font-medium">
+                        <span>💡</span>
+                        <span>
+                          <strong>{item.plateCount} Plaka</strong> × {((parseFloat(item.widthMm) * parseFloat(item.heightMm)) / 1000000).toFixed(2)} m² ({item.widthMm}×{item.heightMm} mm)
+                        </span>
+                      </span>
+                      <span className="font-bold text-xs bg-blue-600 text-white px-2.5 py-1 rounded-md">
+                        = {item.totalAreaM2} m² Toplam Giriş
+                      </span>
+                    </div>
+                  )}
+
                   {/* ── Quality Status + Damaged/Missing Counts ── */}
                   <div className="grid grid-cols-4 items-center gap-2">
                     <label className="text-xs font-medium text-text-muted col-span-1">{t("goodsReceipt.qualityStatus")}</label>

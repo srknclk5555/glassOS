@@ -211,9 +211,9 @@ describe("RecipeEngine — BOM Consumption", () => {
     // netQuantity = 1.0 × 1.570816 = 1.570816
     // waste = 1.570816 × 5% = 0.078541
     // gross = 1.570816 + 0.078541 = 1.649357
-    expect(result.consumedMaterials[0].netQuantity).toBeCloseTo(1.570816, 4);
-    expect(result.consumedMaterials[0].wasteQuantity).toBeCloseTo(0.078541, 4);
-    expect(result.consumedMaterials[0].grossQuantity).toBeCloseTo(1.649357, 4);
+    expect(result.consumedMaterials[0]!.netQuantity).toBeCloseTo(1.570816, 4);
+    expect(result.consumedMaterials[0]!.wasteQuantity).toBeCloseTo(0.078541, 4);
+    expect(result.consumedMaterials[0]!.grossQuantity).toBeCloseTo(1.649357, 4);
   });
 
   it("calculates piece-based consumption", () => {
@@ -233,8 +233,8 @@ describe("RecipeEngine — BOM Consumption", () => {
     const result = RecipeEngine.calculate(input);
 
     // quantity=1, 2 per piece → net = 2
-    expect(result.consumedMaterials[0].netQuantity).toBe(2);
-    expect(result.consumedMaterials[0].grossQuantity).toBe(2);
+    expect(result.consumedMaterials[0]!.netQuantity).toBe(2);
+    expect(result.consumedMaterials[0]!.grossQuantity).toBe(2);
   });
 
   it("handles multiple BOM items", () => {
@@ -263,12 +263,12 @@ describe("RecipeEngine — BOM Consumption", () => {
     const result = RecipeEngine.calculate(input);
 
     expect(result.consumedMaterials).toHaveLength(2);
-    expect(result.consumedMaterials[0].materialCode).toBe("FLAT-4MM");
-    expect(result.consumedMaterials[1].materialCode).toBe("ARA-001");
+    expect(result.consumedMaterials[0]!.materialCode).toBe("FLAT-4MM");
+    expect(result.consumedMaterials[1]!.materialCode).toBe("ARA-001");
     // Perimeter: 2 × (1.024 + 1.534) × 1 × 0.5 / 1000... 
     // Actually for perimeter basis: 2 × (width + height) × quantity × qtyPerUnit / 1000
     // For 1 piece: 2 × (1024 + 1534) × 1 × 0.5 / 1000 = 2 × 2558 × 0.5 / 1000 = 2.558 m
-    expect(result.consumedMaterials[1].netQuantity).toBeCloseTo(2.558, 2);
+    expect(result.consumedMaterials[1]!.netQuantity).toBeCloseTo(2.558, 2);
   });
 });
 
@@ -284,8 +284,8 @@ describe("RecipeEngine — Fire Losses", () => {
     // cutting (3%): 1.570816 × 0.03 = 0.047124
     // temper (2%): 1.570816 × 0.02 = 0.031416
     expect(result.fireLosses).toHaveLength(2);
-    expect(result.fireLosses[0].lossAreaM2).toBeCloseTo(0.047124, 4);
-    expect(result.fireLosses[1].lossAreaM2).toBeCloseTo(0.031416, 4);
+    expect(result.fireLosses[0]!.lossAreaM2).toBeCloseTo(0.047124, 4);
+    expect(result.fireLosses[1]!.lossAreaM2).toBeCloseTo(0.031416, 4);
   });
 
   it("calculates total fire rate correctly", () => {
@@ -310,7 +310,7 @@ describe("RecipeEngine — Fire Losses", () => {
     const result = RecipeEngine.calculate(input);
 
     // fixed amount × quantity = 0.5 × 1 = 0.5
-    expect(result.fireLosses[0].lossAreaM2).toBe(0.5);
+    expect(result.fireLosses[0]!.lossAreaM2).toBe(0.5);
   });
 });
 
@@ -323,15 +323,15 @@ describe("RecipeEngine — Product Output", () => {
     const result = RecipeEngine.calculate(baseInput());
 
     expect(result.producedProducts).toHaveLength(1);
-    expect(result.producedProducts[0].quantity).toBe(1); // 1.0 × 1
-    expect(result.producedProducts[0].productCode).toBe("TMP-4MM");
+    expect(result.producedProducts[0]!.quantity).toBe(1); // 1.0 × 1
+    expect(result.producedProducts[0]!.productCode).toBe("TMP-4MM");
   });
 
   it("scales with quantity", () => {
     const input = baseInput({ quantity: 5 });
     const result = RecipeEngine.calculate(input);
 
-    expect(result.producedProducts[0].quantity).toBe(5);
+    expect(result.producedProducts[0]!.quantity).toBe(5);
   });
 
   it("handles multiple output items", () => {
@@ -356,7 +356,7 @@ describe("RecipeEngine — Product Output", () => {
     const result = RecipeEngine.calculate(input);
 
     expect(result.producedProducts).toHaveLength(2);
-    expect(result.producedProducts[1].quantity).toBeCloseTo(0.05, 4);
+    expect(result.producedProducts[1]!.quantity).toBeCloseTo(0.05, 4);
   });
 });
 

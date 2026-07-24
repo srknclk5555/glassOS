@@ -14,6 +14,7 @@ export interface TranslationDict {
     noNotifications: string;
     viewAllNotifications: string;
     loading: string;
+    all?: string;
     save: string;
     cancel: string;
     delete: string;
@@ -33,10 +34,12 @@ export interface TranslationDict {
     switchLanguage: string;
   };
   navigation: {
+    "production-orders": string;
     settings: string;
     "settings-general": string;
     "material-groups": string;
     "custom-code-definitions": string;
+    "goods-receipt": string;
     overview: string;
     dashboard: string;
     productionGroup: string;
@@ -64,6 +67,7 @@ export interface TranslationDict {
     expandSidebar: string;
     sidebarLabel: string;
     navMenuLabel: string;
+    
   };
   topbar: {
     search: string;
@@ -315,6 +319,15 @@ export interface TranslationDict {
     waste: string;
     selectMaterial: string;
     searchMaterial: string;
+    selectBasis: string;
+
+      basis: {
+      area: string;
+      perimeter: string;
+      piece: string;
+      fixed: string;
+      duration: string;
+};
     unitOptions: {
       kg: string;
       m2: string;
@@ -328,6 +341,8 @@ export interface TranslationDict {
     noOperations: string;
     noOperationsDesc: string;
     operationCode: string;
+    selectStation: string;
+    searchStation: string;
     mandatory: string;
     optional: string;
     operationNotes: string;
@@ -384,12 +399,32 @@ export interface TranslationDict {
     netSize: string;
     showSizeDetails: string;
     hideSizeDetails: string;
+    productionRules: {
+  title: string;
+  desc: string;
+  temperRequired: string;
+  lowEOrientation: string;
+  rodajRequired: string;
+  drillingAllowed: string;
+  cncRequired: string;
+  channelAllowed: string;
+  minMeasure: string;
+  maxMeasure: string;
+  measureHint: string;
+};
+    fireSettings: string;
+    fireSettingsDesc: string;
+    productionFire: string;
+    productionFireRate: string;
+    productionFireHint: string;
+    currentSetting: string;
     netSizeMm: string;
     productionSizeMm: string;
     grindingAllowance: string;
     trimAllowance: string;
     rodaj: {
       title: string;
+      fireTitle: string;
       useDefaults: string;
       useCustom: string;
       applyAllEdges: string;
@@ -400,26 +435,29 @@ export interface TranslationDict {
       mm: string;
     };
     trim: {
-      title: string;
-      useDefaults: string;
-      useCustom: string;
-      applyAllEdges: string;
-      top: string;
-      bottom: string;
-      left: string;
-      right: string;
-      mm: string;
+    title: string;
+    fireTitle: string;
+    useDefaults: string;
+    useCustom: string;
+    applyAllEdges: string;
+    top: string;
+    bottom: string;
+    left: string;
+    right: string;
+    mm: string;
     };
     validationPanel: string;
     validationPanelDesc: string;
     validation: {
-      noIssues: string;
-      recipeCodeRequired: string;
-      nameRequired: string;
-      noMaterials: string;
-      noOperations: string;
-      noOutputs: string;
-      fixErrors: string;
+       noIssues: string;
+       recipeCodeRequired: string;
+       nameRequired: string;
+       noMaterials: string;
+       noOperations: string;
+       noOutputs: string;
+       noOutputsDesc: string;
+       fixErrors: string;
+
     };
     versionSummary: string;
     versionSummaryDesc: string;
@@ -1146,6 +1184,19 @@ export interface TranslationDict {
     totalFire: string;
     totalProduction: string;
     productionSummary: string;
+    trimSize: string;
+    rodajSize: string;
+    efficiency: string;
+    netArea: string;
+    productionArea: string;
+    totalFireRate: string;
+    totalGlassConsumption: string;
+    loadingFactoryConfig: string;
+    engineNoResult: string;
+    calculationDetails: string;
+    fromFactory: string;
+    fromRecipe: string;
+    productionSummaryDesc: string;
     productionPreview: string;
     productionPreviewDesc: string;
     selectRecipe: string;

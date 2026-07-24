@@ -225,10 +225,15 @@ export async function getProductionOrderKpiAction(): Promise<ProductionOrderKpiD
 
     // Build KPI data
     const defaultKpi = { orderCount: 0, totalArea: 0 };
-    const draft = aggResults.find(r => r.status === "draft") ?? defaultKpi;
-    const ready = aggResults.find(r => r.status === "ready") ?? defaultKpi;
-    const released = aggResults.find(r => r.status === "released") ?? defaultKpi;
-    const cancelled = aggResults.find(r => r.status === "cancelled") ?? defaultKpi;
+    type KpiRow = {
+  status: string | null;
+  orderCount: number;
+  totalArea: number;
+};
+    const draft = (aggResults as KpiRow[]).find((r: KpiRow) => r.status === "draft") ?? defaultKpi;
+    const ready = (aggResults as KpiRow[]).find((r: KpiRow) => r.status === "ready") ?? defaultKpi;
+    const released = (aggResults as KpiRow[]).find((r: KpiRow) => r.status === "released") ?? defaultKpi;
+    const cancelled = (aggResults as KpiRow[]).find((r: KpiRow) => r.status === "cancelled") ?? defaultKpi;
 
     // Today's area: filter by productionDate = today
     const todayStart = new Date().toISOString().split("T")[0] + "T00:00:00.000Z";

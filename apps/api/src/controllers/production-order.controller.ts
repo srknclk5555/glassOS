@@ -110,7 +110,7 @@ export function createProductionOrderRouter() {
       const order = await db.query.manufacturingOrders.findFirst({
         where: and(
           eq(manufacturingOrders.id, id),
-          eq(manufacturingOrders.deletedAt, null),
+          isNull(manufacturingOrders.deletedAt),
         ),
       });
 
@@ -142,7 +142,7 @@ export function createProductionOrderRouter() {
           and(
             eq(manufacturingOrders.tenantId, user.tenantId),
             eq(manufacturingOrders.orderNo, data.orderNo),
-            eq(manufacturingOrders.deletedAt, null),
+            isNull(manufacturingOrders.deletedAt),
           )
         )
         .limit(1);
@@ -221,8 +221,11 @@ export function createProductionOrderRouter() {
       const { status: newStatus } = c.req.valid("json");
 
       const order = await db.query.manufacturingOrders.findFirst({
-        where: and(eq(manufacturingOrders.id, id), eq(manufacturingOrders.deletedAt, null)),
-      });
+  where: and(
+    eq(manufacturingOrders.id, id),
+    isNull(manufacturingOrders.deletedAt),
+  ),
+});
       if (!order) throw new NotFoundError("ProductionOrder", id);
 
       // Validate workflow transitions
@@ -260,9 +263,13 @@ export function createProductionOrderRouter() {
       if (!ulidPattern.test(id)) throw new NotFoundError("ProductionOrder", id);
 
       const user = getCurrentUser(c);
-      const order = await db.query.manufacturingOrders.findFirst({
-        where: and(eq(manufacturingOrders.id, id), eq(manufacturingOrders.deletedAt, null)),
-      });
+
+const order = await db.query.manufacturingOrders.findFirst({
+  where: and(
+    eq(manufacturingOrders.id, id),
+    isNull(manufacturingOrders.deletedAt),
+  ),
+});
       if (!order) throw new NotFoundError("ProductionOrder", id);
 
       if (order.status === "released") {
