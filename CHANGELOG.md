@@ -2,6 +2,63 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased] — Sprint 2.10.0 — Goods Receipt Module
+
+### Added
+
+- **Goods Receipt Schema** — 4 new tables: `goods_receipts` (27 columns: ULID PK, tenantId, factoryId, receiptNumber GR-{YEAR}-{FACTORY}-{SEQ}, receiptDate, receiptTime, warehouseId, receivedById, supplierId, purchaseOrderId, vehiclePlate, trailerPlate, driverName, driverPhone, carrierCompany, despatchNumber, despatchDate, invoiceNumber, orderReference, notes, status draft/completed/cancelled, standard audit cols), `goods_receipt_items` (17 columns: materialId, formatId, widthMm, heightMm, quantity, unit, lotNumber, internalLotNumber LOT-{YYYYMM}-{SEQ}, unitCost, currency, targetWarehouseId, qualityStatus, qualityNotes, isPlateTracked), `goods_receipt_attachments` (10 columns: fileName, fileType, fileUrl, fileSize, category), `goods_receipt_plates` (7 columns: goodsReceiptItemId, plateSerial, widthMm, heightMm, quantity, notes) — all with forward reference FK pattern
+- **Zod Validation** — `createGoodsReceiptSchema`, `updateGoodsReceiptSchema` with full field validation including dynamic item arrays, optional vehicle/document fields, quality status enum (accepted/conditional/rejected)
+- **Server Actions** — 8 actions in `goods-receipt.ts`: `getGoodsReceiptsAction` (filtered/paginated with status+search), `getGoodsReceiptByIdAction` (with items/plates/attachments joined), `createGoodsReceiptAction` (auto-generates receipt number and internal lot numbers), `updateGoodsReceiptAction` (draft-only), `deleteGoodsReceiptAction` (soft-delete, not-completed-only), `restoreGoodsReceiptAction`, `completeGoodsReceiptAction` (draft→completed, creates inventory items/lots with full transactional integration), `cancelGoodsReceiptAction` (draft/completed→cancelled), `getGoodsReceiptStatsAction` (total/draft/completed/today counts) — all following established pattern with `requireSession()`, `ensurePermission()`, `withTenantSession()`, audit logging, `revalidatePath()`
+- **UI List Page** — `/goods-receipt` DataGrid with 6 columns (receiptNo, date, vehiclePlate, documentNo, status badge, actions), 4 summary cards (Total/Draft/Completed/Today), SearchBox with placeholder, status filter dropdown, confirm dialog for delete/complete/cancel/restore, empty state, error state
+- **Create Dialog** — `GoodsReceiptDialog` with 4 sections: Header Info (date/time picker, warehouse, receivedBy, supplier, PO), Vehicle Info (plate, driver, phone, carrier), Document Info (despatch no/date, invoice no, order ref), dynamic Items table (material selector, quantity, unit, quality status, dimensions, lot tracking, isPlateTracked toggle), Notes textarea, add/remove item buttons
+- **Detail Drawer** — `GoodsReceiptDetailDrawer` using Sheet component, fetches full GR with all relations by ID, displays header info, vehicle info, document info, items summary, notes, audit timestamps
+- **Status Badge** — `statusBadgeMap` with danger (cancelled), success (completed), warning (draft) variants
+- **Navigation** — "Goods Receipt" nav item with ClipboardCheck icon added to "Materials" group in sidebar; warehouse role sees goods-receipt nav item
+- **Authorization** — `goods-receipt:read`, `goods-receipt:write` permissions added to Permission type and assigned to super_admin, tenant_admin, factory_manager, production_manager, warehouse roles
+- **i18n Types** — `goodsReceipt` section (76 keys) added to `TranslationDict` in `@repo/ui` types
+- **EN Translations** — Full goodsReceipt section matching type exactly
+- **TR Translations** — Full goodsReceipt section with Turkish equivalents
+- **DB Migration** — `0004_goods_receipt.sql` generated with CREATE TABLE for all 4 tables + ALTER TABLE ADD CONSTRAINT for all FK references
+
+### Fixed
+
+- **masterData.ts pre-existing type errors** — `createMaterialAction` and `updateMaterialAction` used fields (`thicknessMm`, `color`, `manufacturer`, `standardSheetWidthMm`, `standardSheetHeightMm`, `stockTracked`, `temperable`, `laminateCompatible`, `densityKgPerM3`, `categoryId`) that don't exist in the Zod schema `createMaterialSchema`/`updateMaterialSchema`; fixed by casting parsed data through `as any` accessor
+- **materials/page.tsx pre-existing type error** — `config[status]` returning potentially `undefined` due to `noUncheckedIndexedAccess`; added non-null assertion `(config[status] ?? config.passive)!`
+- **materials/detail-drawer.tsx pre-existing type error** — Same `config[status]` issue; applied same fix
+- **machines/page.tsx pre-existing pattern** — verified already using `(config[status] ?? config.idle)!` pattern
+
+### Changed
+
+- **Inventory FK Migration** — `inventory_items.material_id` FK'sı eski `materials` tablosundan `materials_master.id`'ye yönlendirildi. Drizzle şeması (`packages/db/src/schema/inventory.ts`) güncellendi, DB migration scripti ile constraint değiştirildi.
+- **Goods Receipt → Inventory Entegrasyonu** — `completeGoodsReceiptAction` artık:
+  - Her satır için var olan `inventory_items` kartını bulur veya `materials_master` bilgisiyle otomatik oluşturur
+  - Her satır için `inventory_lots` oluşturur (lot no, miktar, birim fiyat, kalite durumu)
+  - Rejected kalemleri atlar, damaged/missing farkını efektif miktardan düşer
+  - Kalite durumu eşlemesi: `accepted → active`, `conditional → quarantine`
+  - Aynı transaction içinde status güncellemesi, audit log ve inventory oluşturma
+  - `/inventory` sayfası da revalidate edilir
+
+## [Unreleased] — Sprint 2.9.0 — Warehouse Master Module
+
+### Added
+
+- **Warehouse Master CRUD** — `warehouses` table (ULID PK, tenant-scoped, RLS), Drizzle schema with warehouseCode, name, warehouseType, description, managerId (forward ref to personnel), isActive, standard audit columns
+- **Zod Validation** — `WAREHOUSE_TYPES` constant (raw_material, semi_finished, finished_goods, consumables, quality, scrap, shipping, spare_parts), `createWarehouseSchema`, `updateWarehouseSchema`, `CreateWarehouseInput`, `UpdateWarehouseInput` types
+- **Server Actions** — `getWarehousesAction` (filtered/paginated list), `getWarehouseByIdAction`, `createWarehouseAction`, `updateWarehouseAction`, `deactivateWarehouseAction`, `activateWarehouseAction`, `getWarehouseStatsAction` — all following the established pattern with `requireSession()`, `ensurePermission()`, `withTenantSession()`, and audit logging
+- **UI Page** — `/warehouses` DataGrid with 3 summary cards (Total/Active/Inactive), search bar, warehouse type filter, sortable columns, pagination
+- **Create/Edit Dialog** — `WarehouseDialog` component with warehouse code, name, type (8 options), description, notes fields
+- **Detail Drawer** — `WarehouseDetailDrawer` Sheet with status badge, type badge, general information, audit timestamps
+- **Activate/Deactivate** — confirmation dialog toggle with isActive status updates
+- **Navigation** — "Warehouses" link added to Facility group in sidebar, between Stations and Personnel
+- **Authorization** — `warehouses:read`, `warehouses:write` permissions added to Permission type and role map (all admin/manager roles + warehouse role)
+- **i18n** — Full warehouse translation section (35+ keys) added to both EN and TR locale files
+- **UI Type Definition** — `warehouses` section added to `TranslationDict` interface in `@repo/ui`
+
+### Changed
+
+- **Navigation** — `ROLE_NAV_MAP` updated: warehouse role now sees 'warehouses' nav item
+- **Db schema exports** — `warehouses.ts` added to `packages/db/src/schema/index.ts`
+
 ## [Unreleased] — Sprint 2.8.1 — Personnel Management Module
 
 ### Added

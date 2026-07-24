@@ -16,6 +16,9 @@ export const materialCategories = pgTable("material_categories", {
     .notNull()
     .references(() => tenants.id, { onDelete: "restrict" }),
   name: varchar("name", { length: 255 }).notNull(),
+  materialType: varchar("material_type", { length: 50 }),
+  // Nullable — generic groups can apply to all types.
+  // When set, the group only appears for that material type.
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()

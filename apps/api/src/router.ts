@@ -13,6 +13,8 @@ import { createPersonnelRouter } from "./controllers/personnel.controller.js";
 import { createMachineRouter } from "./controllers/machine.controller.js";
 import { createInventoryRouter } from "./controllers/inventory.controller.js";
 import { createRecipeRouter } from "./controllers/recipe.controller.js";
+import { createProductionRecordRouter } from "./controllers/production-record.controller.js";
+import { createProductionOrderRouter } from "./controllers/production-order.controller.js";
 import type { AppServices } from "./services.js";
 
 export function createRouter(services: AppServices): Hono {
@@ -31,7 +33,9 @@ export function createRouter(services: AppServices): Hono {
   router.route("/personnel", createPersonnelRouter());
   router.route("/machines", createMachineRouter());
   router.route("/inventory", createInventoryRouter());
-  router.route("/recipes", createRecipeRouter());
+  router.route("/recipes", createRecipeRouter({ recipe: services.recipe }));
+  router.route("/production-records", createProductionRecordRouter({ productionRecord: services.productionRecord }));
+  router.route("/production-orders", createProductionOrderRouter());
 
   return router;
 }

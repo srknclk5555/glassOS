@@ -13,8 +13,8 @@
 | Layer                 | Status                                     |
 | --------------------- | ------------------------------------------ |
 | Architecture Status   | ✅ Completed                               |
-| Implementation Status | ✅ Active Standard — Sprint 2.4 and beyond |
-| Validation Status     | ⏳ Enforced per migration PR review        |
+| Implementation Status | ✅ Active Standard — Tüm migration'lar bu standartta |
+| Validation Status     | ✅ Enforced — PR review + otomatik kontroller |
 
 ---
 
@@ -747,7 +747,7 @@ These tables use `deleted_at TIMESTAMPTZ` + `deleted_by CHAR(26)` columns. Physi
 | `order_lines`            | Part of order; cannot be physically deleted if order exists             |
 | `machines`               | Machine referenced by production_events and maintenance_logs            |
 | `stations`               | Station referenced by production_events and queue_items                 |
-| `materials`              | Referenced by recipe_items and inventory_items                          |
+| `materials_master`        | Referenced by recipe_items and inventory_items                          |
 | `products`               | Referenced by order_lines and production_orders                         |
 | `recipes`                | Referenced by order_lines and production_orders (specific version)      |
 | `inventory_items`        | Referenced by lots, barcodes, and consumption records                   |

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { createDeliveryPointAction } from "@/app/actions/identity";
+import { createDeliveryPointAction } from "@/app/actions/customers";
 
 export default function DeliveryPointForm({ customerId }: { customerId: string }) {
   const [submitting, setSubmitting] = useState(false);

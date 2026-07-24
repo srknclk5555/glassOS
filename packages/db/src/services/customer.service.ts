@@ -148,7 +148,8 @@ export class CustomerService {
 
   async findActive(options: any = {}): Promise<any[]> {
     return withTenantSession(async (tx, ctx) => {
-      return this.customerRepository.findActiveCustomers(options);
+      const result = await this.customerRepository.findForList(ctx.tenantId!, { activeOnly: true });
+      return result.items;
     });
   }
 }

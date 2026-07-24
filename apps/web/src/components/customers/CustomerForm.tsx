@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { createCustomerAction } from "@/app/actions/identity";
+import { createCustomerAction } from "@/app/actions/customers";
 
 export default function CustomerForm({ existing }: { existing?: any }) {
   const [submitting, setSubmitting] = useState(false);
@@ -22,17 +22,17 @@ export default function CustomerForm({ existing }: { existing?: any }) {
     >
       <div>
         <label>ERP Kodu<br />
-          <input name="erpCode" defaultValue={existing?.erpCode ?? ""} />
+          <input name="customerCode" defaultValue={existing?.customerCode ?? ""} />
         </label>
       </div>
       <div>
         <label>Ünvan<br />
-          <input name="title" defaultValue={existing?.title ?? ""} required />
+          <input name="name" defaultValue={existing?.name ?? ""} required />
         </label>
       </div>
       <div>
         <label>Kısa Ünvan<br />
-          <input name="shortTitle" defaultValue={existing?.shortTitle ?? ""} />
+          <input name="shortName" defaultValue={existing?.shortName ?? ""} />
         </label>
       </div>
       <div>
@@ -43,14 +43,6 @@ export default function CustomerForm({ existing }: { existing?: any }) {
       <div>
         <label>Adres<br />
           <input name="address" defaultValue={existing?.address ?? ""} />
-        </label>
-      </div>
-      <div>
-        <label>ERP Status<br />
-          <select name="erpStatus" defaultValue={existing?.erpStatus ?? "active"}>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
         </label>
       </div>
       <div>

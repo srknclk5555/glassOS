@@ -1,3 +1,5 @@
+"use client";
+
 import { EmptyState } from "@repo/ui";
 import { Inbox, type LucideIcon } from "lucide-react";
 

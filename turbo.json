@@ -5,7 +5,11 @@
     "NODE_ENV",
     "DATABASE_URL",
     "NEXTAUTH_SECRET",
-    "NEXTAUTH_URL"
+    "NEXTAUTH_URL",
+    "API_URL",
+    "JWT_SECRET",
+    "JWT_ISSUER",
+    "JWT_AUDIENCE"
   ],
   "tasks": {
     "build": {

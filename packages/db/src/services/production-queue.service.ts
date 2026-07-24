@@ -10,6 +10,7 @@ import type {
   QueueCompletedEvent,
   EventPublisher,
 } from "./events";
+import type { ProductionRecordService } from "./production-record.service";
 
 export class ProductionQueueService {
   constructor(
@@ -18,7 +19,8 @@ export class ProductionQueueService {
     private readonly orderRepository: OrderRepository,
     private readonly orderLineRepository: OrderLineRepository,
     private readonly eventPublisher: EventPublisher,
-    private readonly db: any
+    private readonly db: any,
+    private readonly productionRecordService?: ProductionRecordService,
   ) {}
 
   async createWorkQueue(input: {
@@ -286,6 +288,7 @@ export class ProductionQueueService {
       }
 
       // Update production order statuses for completed items
+      const completedOrderIds: string[] = [];
       for (const item of inProgressItems) {
         const prodOrder = await this.productionRepository.findById(
           item.productionOrderId
@@ -295,6 +298,7 @@ export class ProductionQueueService {
             currentStatus: "completed",
             completedAt: new Date(),
           });
+          completedOrderIds.push(prodOrder.id);
         }
       }
 
@@ -305,9 +309,26 @@ export class ProductionQueueService {
         itemCount: inProgressItems.length,
       };
 
-      return { events: [event] };
+      return { events: [event], completedOrderIds };
     });
     await this.eventPublisher.publishMany(_txResult.events);
+
+    // ── Integration: Create Production Records for completed orders ────
+    // Executed AFTER the queue completion transaction commits.
+    for (const orderId of _txResult.completedOrderIds) {
+      try {
+        await this.productionRecordService?.handleProductionCompletion(
+          orderId,
+          {},
+        );
+      } catch (err) {
+        console.error(
+          `[ProductionRecord] Failed to create record for completed order ${orderId}:`,
+          err,
+        );
+      }
+    }
+
     return _txResult;
   }
 

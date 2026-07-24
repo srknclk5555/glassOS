@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db, auditLogs, eq } from '@repo/db';
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {

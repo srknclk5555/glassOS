@@ -10,7 +10,8 @@ import {
 } from "drizzle-orm/pg-core";
 import { tenants } from "./core";
 import { factories } from "./factories";
-import { materials, products } from "./materials-products";
+import { materialsMaster } from "./materials-master";
+import { products } from "./materials-products";
 
 // ─── Inventory Locations (referenced by inventory_items) ──────────────────────
 
@@ -60,7 +61,7 @@ export const inventoryItems = pgTable("inventory_items", {
   // piece | m2 | kg | m | liter | box | package | roll
 
   materialId: char("material_id", { length: 26 }).references(
-    () => materials.id,
+    () => materialsMaster.id,
     { onDelete: "restrict" }
   ),
   productId: char("product_id", { length: 26 }).references(

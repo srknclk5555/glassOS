@@ -5,13 +5,13 @@ import { db, roles, users } from "@repo/db";
 import { eq } from "drizzle-orm";
 import { perfLog, perfStart, perfEnd } from "@/lib/perf";
 
-export type Permission = "tenants:read" | "tenants:write" | "factories:read" | "factories:write" | "users:read" | "users:write" | "machines:read" | "machines:write" | "stations:read" | "stations:write" | "personnel:read" | "personnel:write";
+export type Permission = "tenants:read" | "tenants:write" | "factories:read" | "factories:write" | "users:read" | "users:write" | "machines:read" | "machines:write" | "stations:read" | "stations:write" | "personnel:read" | "personnel:write" | "warehouses:read" | "warehouses:write" | "materials:read" | "materials:write" | "goods-receipt:read" | "goods-receipt:write" | "customers:read" | "customers:write";
 
 const permissionMap: Record<string, Permission[]> = {
-  super_admin: ["tenants:read", "tenants:write", "factories:read", "factories:write", "users:read", "users:write", "machines:read", "machines:write", "stations:read", "stations:write", "personnel:read", "personnel:write"],
-  tenant_admin: ["factories:read", "factories:write", "users:read", "users:write", "machines:read", "machines:write", "stations:read", "stations:write", "personnel:read", "personnel:write"],
-  factory_manager: ["factories:read", "users:read", "machines:read", "machines:write", "stations:read", "stations:write", "personnel:read", "personnel:write"],
-  production_manager: ["factories:read", "machines:read", "machines:write", "stations:read", "stations:write", "personnel:read", "personnel:write"],
+  super_admin: ["tenants:read", "tenants:write", "factories:read", "factories:write", "users:read", "users:write", "machines:read", "machines:write", "stations:read", "stations:write", "personnel:read", "personnel:write", "warehouses:read", "warehouses:write", "materials:read", "materials:write", "goods-receipt:read", "goods-receipt:write", "customers:read", "customers:write"],
+  tenant_admin: ["factories:read", "factories:write", "users:read", "users:write", "machines:read", "machines:write", "stations:read", "stations:write", "personnel:read", "personnel:write", "warehouses:read", "warehouses:write", "materials:read", "materials:write", "goods-receipt:read", "goods-receipt:write", "customers:read", "customers:write"],
+  factory_manager: ["factories:read", "users:read", "machines:read", "machines:write", "stations:read", "stations:write", "personnel:read", "personnel:write", "warehouses:read", "warehouses:write", "materials:read", "materials:write", "goods-receipt:read", "goods-receipt:write", "customers:read"],
+  production_manager: ["factories:read", "machines:read", "machines:write", "stations:read", "stations:write", "personnel:read", "personnel:write", "warehouses:read", "warehouses:write", "materials:read", "materials:write", "goods-receipt:read", "goods-receipt:write", "customers:read"],
   maintenance_tech: ["factories:read", "machines:read", "machines:write", "stations:read"],
   quality_engineer: ["factories:read", "machines:read", "stations:read"],
   operator: ["factories:read", "machines:read", "stations:read"],
@@ -22,7 +22,7 @@ const permissionMap: Record<string, Permission[]> = {
   washing: ["factories:read"],
   temper: ["factories:read"],
   quality: ["factories:read"],
-  warehouse: ["factories:read"],
+  warehouse: ["factories:read", "warehouses:read", "warehouses:write", "materials:read", "materials:write", "goods-receipt:read", "goods-receipt:write"],
   driver: ["factories:read"],
   customer: ["factories:read"],
 };

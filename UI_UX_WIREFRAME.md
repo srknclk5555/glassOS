@@ -1,0 +1,222 @@
+# GlassOS UI/UX Refactor — Wireframe Tasarımı (REV 2)
+
+> **Hedef:** DİA ERP, Logo ERP, SAP PP seviyesinde profesyonel ekran yerleşimleri.
+> **Kural:** Yeni Engine/API/DB yok. Sadece mevcut ekranların yeniden düzenlenmesi.
+> **Tasarım Felsefesi:** Modern web uygulaması ile klasik ERP arasında denge. Yoğun bilgi, okunabilir düzen, kompakt kartlar.
+
+---
+
+## 1. Production Order List — `/production/orders`
+
+```
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                        ÜRETİM EMİRLERİ                                     ║
+║  Ana Panel > Üretim > Üretim Emirleri                                      ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+┌─ SOL PANEL (240px) ─────────────────────┬─ SAĞ PANEL (main) ───────────────┐
+│                                           │  ┌─ TOOLBAR ──────────────────┐ │
+│  ┌─ FİLTRELER ───────────────────────┐   │  │ [Ara...]    [Durum ▼]      │ │
+│  │  Tarih: [Bu Hafta         ▼]      │   │  │ [Tarih Aralığı ▼]          │ │
+│  │                                     │   │  │                            │ │
+│  │  ☑ Tümü (42)                      │   │  │ [+ Yeni Emir] [🔄] [📊]   │ │
+│  │  ○ Taslak      (12)               │   │  └────────────────────────────┘ │
+│  │  ○ Hazır       (8)                │   │                                  │
+│  │  ○ Serbest     (18)               │   │  ┌─ KPI BAR (kompakt) ─────────┐ │
+│  │  ○ İptal       (4)                │   │  │ ┌────────────┬────────────┬┐ │ │
+│  │                                     │   │  │ │  42 Emir   │ 1,240 m²  ││ │ │
+│  │  [Filtreleri Temizle]              │   │  │ │  Toplam    │  Bugünkü  ││ │ │
+│  │  └─────────────────────────────┘   │   │  ├────────────┼────────────┤│ │ │
+│  │                                     │   │  │ │ 12 Taslak │ 680 m²    ││ │ │
+│  │  ┌─ HACİM ÖZETİ ────────────────┐  │   │  │  8 Hazır   │ 420 m²    ││ │ │
+│  │  │ Bugünkü m² : 1,240           │  │   │  │ 18 Serbest │ 2,100 m²  ││ │ │
+│  │  │ Bekleyen m²: 2,340           │  │   │  │  4 İptal   │ 180 m²    ││ │ │
+│  │  │ Toplam m²  : 8,450           │  │   │  └────────────┴────────────┘│ │
+│  │  │ Toplam Fire: %3.8            │  │   │  └───────────────────────────┘ │
+│  │  └──────────────────────────────┘   │                                  │
+│  │                                     │  ┌─ DATA GRID (yoğun) ──────────┐ │
+│  │  ┌─ SIK KULLANILANLAR ──────────┐  │  │ # │Emir No  │Mştr│Trh    │m²│D│ │
+│  │  │ 📌 Krizdeki siparişler       │  │  ├───┼─────────┼────┼───────┼──┤─│ │
+│  │  │ 📌 Bugün terminli emirler    │  │  │ 1 │PO-00024 │ABC │20.07  │45│🟢│ │
+│  │  └──────────────────────────────┘  │  │ 2 │PO-00023 │CAM │19.07  │32│🟢│ │
+│  │                                     │  │ 3 │PO-00022 │DÜZ │18.07  │28│⚪│ │
+│  └─────────────────────────────────────┤  │ 4 │PO-00021 │ABC │17.07  │12│🔴│ │
+│                                         │  │ 5 │PO-00020 │CAM │17.07  │55│🔵│ │
+│                                         │  │...│         │    │       │  │ ││
+│                                         │  └──────────────────────────────┘ │
+│                                         │  ┌─ PAGINATION ─────────────────┐ │
+│                                         │  │ ◀ 1 2 3 ... 8 ▶  20/page    │ │
+│                                         └──────────────────────────────────┘ │
+└─────────────────────────────────────────┴──────────────────────────────────┘
+```
+
+### Öne Çıkanlar:
+| Bileşen | Detay |
+|---------|-------|
+| **KPI BAR** | Çift satırlı kompakt kart: her durum için Emir Sayısı + m² hacmi yan yana |
+| **DATA GRID** | m² sütunu eklendi, durum ikonu renkli, yoğun ama okunabilir |
+| **SOL PANEL** | Filtreler + Hacim Özeti (bugünkü/bekleyen/toplam m²) + Sık Kullanılanlar |
+| **TOOLBAR** | Tarih aralığı seçici, export (📊) |
+
+---
+
+## 2. Production Order Detail — `/production/orders/[id]`
+
+```
+╔══════════════════════════════════════════════════════════════════════════════╗
+║  ← Üretim Emirleri                                                         ║
+║  PO-024  [🔵 Serbest Bırakıldı]                           20.07.2026       ║
+║  Oluşturan: Ahmet Yılmaz · 18.07.2026                                      ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+┌─ TOOLBAR ───────────────────────────────────────────────────────────────────┐
+│  [🔙 Geri]  [✏️ Düzenle]  [📋 Kopyala]  [⬆️ Serbest Bırak]  [🗑️ Sil]      │
+│  Durum: Taslak → Hazır → Serbest Bırakıldı  (Ahmet · 18.07)                │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌─ SOL PANEL (300px) ────────────────────┬─ SAĞ PANEL (main) ───────────────┐
+│                                          │                                  │
+│  ┌─ SİPARİŞ BİLGİLERİ ─────────────────┐│  ┌─ TAB'LAR ───────────────────┐ │
+│  │ Emir No    : PO-024                 ││  │ [Ürünler] [Fire] [Operasyon] │ │
+│  │ Müşteri    : ABC Cam Sanayi         ││  │ [Geçmiş] [Notlar]            │ │
+│  │ Üretim Tarih: 20.07.2026           ││  └──────────────────────────────┘ │
+│  │ Termin     : 25.07.2026            ││                                    │
+│  │ Oluşturan  : Ahmet Yılmaz          ││  ┌─ SEÇİLİ TAB İÇERİĞİ ─────────┐ │
+│  │ Not        : Acil gönderim         ││  │  Örn: Ürünler tab'ı            │ │
+│  └────────────────────────────────────┘│  │                                │ │
+│                                          │  │ ┌─ ÜRÜN KARTI ─────────────┐ │ │
+│  ┌─ ÜRETİM ÖZETİ ──────────────────────┐│  │ │ ▸ 01 - Düz Cam 4mm       │ │ │
+│  │ 📦 Sipariş Adedi : 1,250 adet      ││  │ │   Reçete: FLAT-001        │ │ │
+│  │ 📐 Net Alan      : 48.000 m²       ││  │ │   Net: 1200x800mm         │ │ │
+│  │ 🏭 Üretim Alanı  : 52.400 m²       ││  │ │   Üretim: 1250x850mm      │ │ │
+│  │ 📦 Hammadde      : 54.200 m²       ││  │ │   Adet: 50 · Fire: %2.1   │ │ │
+│  │ 🔥 Toplam Fire   : %3.2            ││  │ └──────────────────────────┘ │ │
+│  │ ✅ Toplam Mamul  : 1.225 adet      ││  │                                │ │
+│  │                                     ││  │ ┌─ ÜRÜN KARTI ─────────────┐ │ │
+│  │ [⬆️ Serbest Bırak]  [🗑️ Sil]      ││  │ │ ▸ 02 - Temperli Cam      │ │ │
+│  └────────────────────────────────────┘│  │ │   ...                      │ │ │
+│                                          │  └────────────────────────────┘ │
+│  ┌─ DURUM AKIŞ KARTI ─────────────────┐ │                                    │
+│  │ 📄 Taslak · 10.07 - Ahmet         │ │  ┌─ ENGINE SNAPSHOT (collapsible) ┐│
+│  │ ✅ Hazır · 15.07 - Ahmet          │ │  │ [🔽 Detaylar]                  ││
+│  │ 🚀 Serbest · 18.07 - Ahmet        │ │  │ Net→Trim→Rodaj→Prod            ││
+│  └────────────────────────────────────┘ │  │ 1200→1210→1240→1250mm          ││
+│                                          │  └──────────────────────────────┘│
+└──────────────────────────────────────────┴──────────────────────────────────┘
+```
+
+### Öne Çıkanlar:
+| Bileşen | Detay |
+|---------|-------|
+| **SOL PANEL** | Sipariş Bilgileri + **Üretim Özeti** (snapshot'dan: adet, alan, hammadde, fire, mamul) + Durum Akışı |
+| **ÜRETİM ÖZETİ** | 6 metrik: Sipariş Adedi, Net Alan, Üretim Alanı, Hammadde, Fire, Mamul — hepsi Engine Snapshot'dan okunur |
+| **SAĞ TAB'LAR** | [Ürünler] [Fire] [Operasyon] [Geçmiş] [Notlar] — yatay tab'lar |
+| **ÜRÜN KARTLARI** | Kompakt, her item için tek satır özet, expandable değil (yoğun bilgi) |
+| **ENGINE SNAPSHOT** | Collapsible, sadece ilgili tab'da |
+
+---
+
+## 3. Recipe Editor — `/recipes/[id]` (Edit) & `/recipes/new`
+
+```
+╔══════════════════════════════════════════════════════════════════════════════╗
+║  ← Reçeteler                                                               ║
+║  FLAT-001 - Düz Cam 4mm  [🟢 Aktif]  v2.0                   💾 Kaydedildi  ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+┌─ TOOLBAR ───────────────────────────────────────────────────────────────────┐
+│  [🔙 Geri]  [💾 Kaydet]  [🔄 Hesapla]  [📋 Kopyala]  [📄 Yeni Versiyon]    │
+│  [📎 Emir Oluştur]                                             2 dk önce    │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌─ SOL TAB LİSTESİ (180px) ─┬─ SAĞ: TAB İÇERİĞİ ───────────────────────────┐
+│  (üretim akışı sırasıyla)  │                                               │
+│  ┌────────────────────┐   │  ┌─ [SEÇİLİ TAB İÇERİĞİ] ──────────────────┐ │
+│  │ 📋 Genel Bilgiler  │   │  │                                           │ │
+│  ├────────────────────┤   │  │  Örn: "Girdiler" tab'ı:                  │ │
+│  │ 📦 Girdiler        │   │  │  ┌────────────────────────────────────┐  │ │
+│  │ ✅ Çıktılar        │   │  │  │ # │Malzeme        │Mkt│Bir│Fire│   │  │ │
+│  │ 📏 Ölçü Kuralları  │   │  │  ├───┼───────────────┼───┼───┼────┤   │  │ │
+│  │ 🔥 Fire            │   │  │  │ 1 │Float Glass 4mm│12 │m² │%3.0│[🗑️]│  │ │
+│  │ 📐 Hesap Özeti     │   │  │  │ 2 │Temper. Cam   │8  │m² │%2.5│[🗑️]│  │ │
+│  │ 🔧 Operasyonlar    │   │  │  │   [+ Yeni Malzeme Ekle]              │  │ │
+│  │ 📜 Versiyon        │   │  │  └────────────────────────────────────┘  │ │
+│  └────────────────────┘   │  │                                           │ │
+│                            │  └───────────────────────────────────────────┘ │
+│  (tab ikon açıklamaları)  │                                               │
+│  📋 = Genel Bilgiler      │  ┌─ 🔒 SABİT ÖNİZLEME PANELİ ──────────────┐ │
+│  📦 = Hammadde Girdileri  │  │  Net: [1200] x [800] mm  Adet: [50]      │ │
+│  ✅ = Mamul Çıktıları     │  │                                          │ │
+│  📏 = Rodaj & Trim Kur.   │  │  Net  → Trim → Rodaj → Prod              │ │
+│  🔥 = Fire Tanımları      │  │  1200   1210   1240   1250mm             │ │
+│  📐 = Hesaplama Özeti     │  │  ████████████████████░░░  %94 Verim      │ │
+│  🔧 = Operasyonlar        │  │  Alan: 48.0 | Fire: %3.2 | Ham: 54.2    │ │
+│  📜 = Versiyon Geçmişi    │  └──────────────────────────────────────────┘ │
+│                            │                                               │
+└────────────────────────────┴───────────────────────────────────────────────┘
+```
+
+### Öne Çıkanlar:
+| Bileşen | Detay |
+|---------|-------|
+| **SEKME SIRASI** | Üretim akışına göre: Genel → Girdiler → Çıktılar → Ölçü Kuralları → Fire → Hesap Özeti → Operasyonlar → Versiyon |
+| **SABİT ÖNİZLEME** | 🔒 Alt panel her sekmede görünür. Dimension Pipeline, Efficiency Bar, Alan/Fire/Hammadde özeti |
+| **HESAP ÖZETİ** | Ayrı bir sekme — detaylı hesaplama tabloları, consumedMaterials, fireLosses, producedProducts |
+| **SOL TAB'LAR** | Üretim akışı sırası, ikonlu, kompakt liste |
+| **SAĞ PANEL** | Seçili tab içeriği + altta sabit önizleme paneli |
+
+---
+
+## Genel ERP Tasarım İlkeleri
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        GLASSOS ERP TASARIM SİSTEMİ                          │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  1. SOL PANEL + SAĞ PANEL modeli                                          │
+│     - Sol: bağlam bilgisi, filtreler, özet kartlar, durum akışı            │
+│     - Sağ: ana içerik, tab'lar, grid, formlar                              │
+│                                                                             │
+│  2. DURUM RENK KODLAMASI                                                   │
+│     - Taslak:  ⚪ Gri / Secondary                                          │
+│     - Hazır:    🔵 Mavi / Info                                             │
+│     - Serbest:  🟢 Yeşil / Success                                         │
+│     - İptal:    🔴 Kırmızı / Danger                                        │
+│                                                                             │
+│  3. YOĞUN BİLGİ, OKUNABİLİR DÜZEN                                         │
+│     - Çok büyük kartlardan kaçın, padding'i azalt                          │
+│     - Grid yapısını koru, m² bilgisini her yere ekle                       │
+│     - Renk kodlaması ile hızlı durum tanıma                                │
+│                                                                             │
+│  4. TUTARLI AKSİYON YERLEŞİMİ                                              │
+│     - Primary aksiyonlar: toolbar sağ üst                                  │
+│     - Row aksiyonlar: tablonun son sütunu                                  │
+│     - Hızlı aksiyonlar: sol panel altı (detail'de)                         │
+│                                                                             │
+│  5. SABİT ÖNİZLEME (Recipe Editor)                                         │
+│     - Sekme değişse bile engine önizlemesi kaybolmaz                        │
+│     - Dimension pipeline görsel + efficiency bar + totals                  │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Değişiklik Özeti (Revizyonlar)
+
+| # | Talep | Yapılan Değişiklik |
+|---|-------|-------------------|
+| 1 | Recipe Editor sekme sırası üretim akışına göre | Genel → Girdiler → Çıktılar → Ölçü Kuralları → Fire → Hesap Özeti → Operasyonlar → Versiyon |
+| 2 | "Hesap Özeti" ayrı sekme, pipeline/efficiency sabit alt panel | 🔒 Sabit Önizleme Paneli tüm sekmelerde görünür, "Hesap Özeti" sekmesi detaylı tabloları içerir |
+| 3 | Order Detail sol panele "Üretim Özeti" kartı | 6 metrik: Adet, Net Alan, Üretim Alanı, Hammadde, Fire, Mamul — snapshot'dan okunur |
+| 4 | Order List KPI'ları m² hacmi göstersin | Çift satırlı kompakt kart: Emir Sayısı + m² hacmi; Sol panelde Hacim Özeti (bugünkü/bekleyen/toplam m²) |
+| 5 | Genel tasarım dengesi | Modern web + klasik ERP dengesi, kompakt kartlar, yoğun bilgi, okunabilir grid |
+
+---
+
+**Onayınızı bekliyorum.** Onay sonrası implementasyona başlayacağım:
+
+1. ➡ **Production Order List** refactor (sol panel, KPI revizyonu, m² sütunu)
+2. ➡ **Production Order Detail** refactor (sol panel + Üretim Özeti + tab'lar)
+3. ➡ **Recipe Editor** refactor (sol tab navigasyonu + sabit önizleme)

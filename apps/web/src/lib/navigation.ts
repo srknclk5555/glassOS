@@ -12,6 +12,9 @@ import {
   Truck,
   BarChart3,
   Settings,
+  Warehouse,
+  Box,
+  ClipboardCheck,
 } from "lucide-react";
 import type { NavItem } from "@repo/ui";
 
@@ -21,13 +24,26 @@ export const ALL_NAV_ITEMS: NavItem[] = [
   { id: "production", label: "Production", icon: Cog, href: "/production", group: "Production" },
   { id: "queue", label: "Queue", icon: ListOrdered, href: "/queue", group: "Production" },
   { id: "inventory", label: "Inventory", icon: Package, href: "/inventory", group: "Materials" },
+  { id: "materials", label: "Materials", icon: Box, href: "/materials", group: "Materials" },
+  { id: "goods-receipt", label: "Goods Receipt", icon: ClipboardCheck, href: "/goods-receipt", group: "Materials" },
   { id: "customers", label: "Customers", icon: Users, href: "/customers", group: "Relations" },
   { id: "recipes", label: "Recipes", icon: BookOpen, href: "/recipes", group: "Production" },
+  { id: "production-orders", label: "Production Orders", icon: ClipboardCheck, href: "/production/orders", group: "Production" },
   { id: "machines", label: "Machines", icon: Factory, href: "/machines", group: "Facility" },
   { id: "stations", label: "Stations", icon: MapPin, href: "/stations", group: "Facility" },
+  { id: "warehouses", label: "Warehouses", icon: Warehouse, href: "/warehouses", group: "Facility" },
   { id: "personnel", label: "Personnel", icon: Users, href: "/personnel", group: "Facility" },
   { id: "quality", label: "Quality", icon: ShieldCheck, href: "/quality", group: "Quality" },
   { id: "dispatch", label: "Dispatch", icon: Truck, href: "/dispatch", group: "Logistics" },
   { id: "reports", label: "Reports", icon: BarChart3, href: "/reports", group: "Analytics" },
-  { id: "settings", label: "Settings", icon: Settings, href: "/settings" },
+  {
+    id: "settings",
+    label: "Settings",
+    icon: Settings,
+    children: [
+      { id: "settings-general", label: "General", href: "/settings" },
+      { id: "material-groups", label: "Material Groups", href: "/settings/material-groups" },
+      { id: "custom-code-definitions", label: "Custom Code Definitions", href: "/settings/custom-code-definitions" },
+    ],
+  },
 ];

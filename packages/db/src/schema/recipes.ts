@@ -63,6 +63,7 @@ export const recipeItems = pgTable("recipe_items", {
     scale: 6,
   }).notNull(),
   unit: varchar("unit", { length: 20 }).notNull(),
+  wastePercentage: numeric("waste_percentage", { precision: 5, scale: 2 }),
   sequence: integer("sequence").notNull(), // unique per recipe — enforced by index
 
   createdAt: timestamp("created_at", { withTimezone: true })
@@ -102,6 +103,57 @@ export const recipeRules = pgTable("recipe_rules", {
   // drilling_required | cnc_required | lamination_required
 
   ruleValue: text("rule_value"),
+
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
+});
+
+export const recipeOutputs = pgTable("recipe_outputs", {
+  id: char("id", { length: 26 }).primaryKey(),
+  recipeId: char("recipe_id", { length: 26 })
+    .notNull()
+    .references(() => recipes.id, { onDelete: "cascade" }),
+  productId: char("product_id", { length: 26 })
+    .notNull()
+    .references(() => products.id, { onDelete: "restrict" }),
+
+  quantityPerUnit: numeric("quantity_per_unit", {
+    precision: 12,
+    scale: 6,
+  }).notNull(),
+  unit: varchar("unit", { length: 20 }).notNull(),
+  sequence: integer("sequence").notNull(),
+
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
+});
+
+export const recipeFires = pgTable("recipe_fires", {
+  id: char("id", { length: 26 }).primaryKey(),
+  recipeId: char("recipe_id", { length: 26 })
+    .notNull()
+    .references(() => recipes.id, { onDelete: "cascade" }),
+
+  fireType: varchar("fire_type", { length: 50 }).notNull(),
+  // grinding | cutting | breakage | temper_loss | operator_loss | custom
+
+  calculationMethod: varchar("calculation_method", { length: 30 }).notNull(),
+  // percentage | per_edge_mm | per_axis_mm | fixed | custom
+
+  rate: numeric("rate", { precision: 8, scale: 4 }).notNull(),
+  // For percentage: 0.05 = 5%
+  // For per_edge_mm: mm amount per edge
+  // For fixed: absolute quantity
+
+  fireStockCardId: char("fire_stock_card_id", { length: 26 }),
+  // Optional: if fire is tracked as a separate stock item (waste stock card)
+
+  sequence: integer("sequence").notNull(),
+  notes: text("notes"),
 
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()

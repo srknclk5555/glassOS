@@ -1,36 +1,33 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/create-next-app).
+# GlassOS Web — Next.js Frontend
 
-## Getting Started
+> **Framework:** Next.js 15.5 (App Router)  
+> **Port:** 3000  
+> **Durum:** ✅ Aktif Geliştirme — 12 modül çalışıyor
 
-First, run the development server:
+GlassOS ana web uygulaması. Cam fabrikası MES/ERP arayüzü.
+
+## Hızlı Başlangıç
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run dev          # Turbopack ile geliştirme (port 3000)
+npm run build        # Production build
+npm run dev:api      # Hono API sunucusuyla birlikte çalıştır
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Mimari
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Routing:** Next.js App Router — `/src/app/[[...locale]]/`
+- **State:** React Server Components + Actions
+- **Auth:** NextAuth.js 4.24 (CredentialsProvider + JWT session)
+- **DB:** `@repo/db` package — Drizzle ORM with RLS
+- **UI:** `@repo/ui` — Radix UI + Tailwind CSS 4 bileşenleri
+- **i18n:** Çift dil desteği (TR/EN)
+- **Validation:** `@repo/types` — Zod şemaları
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load Inter, a custom Google Font.
+## Temel Bağımlılıklar
 
-## Learn More
+- Next.js 15.5, React 19
+- Tailwind CSS 4, Radix UI, Lucide React
+- NextAuth.js 4.24, bcrypt
+- @repo/db, @repo/types, @repo/ui (workspace packages)
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

@@ -5,6 +5,8 @@ import {
   text,
   boolean,
   numeric,
+  integer,
+  jsonb,
   timestamp,
 } from "drizzle-orm/pg-core";
 import { tenants } from "./core";
@@ -31,9 +33,22 @@ export const customers = pgTable("customers", {
   email: varchar("email", { length: 255 }),
   address: text("address"),
   city: varchar("city", { length: 100 }),
+  district: varchar("district", { length: 100 }),
   country: varchar("country", { length: 100 }),
+  erpStatus: varchar("erp_status", { length: 20 }),
   isActive: boolean("is_active").notNull().default(true),
   notes: text("notes"),
+
+  // JSONB Value Objects (see §4.2–§4.6 of CUSTOMER_ARCHITECTURE.md)
+  qualityProfile: jsonb("quality_profile"),
+  productionPreferences: jsonb("production_preferences"),
+  labelSpec: jsonb("label_spec"),
+  packagingProfile: jsonb("packaging_profile"),
+  communicationProfile: jsonb("communication_profile"),
+  operationalBlock: jsonb("operational_block"),
+
+  // Optimistic locking (see §4.1 of CUSTOMER_ARCHITECTURE.md)
+  version: integer("version").notNull().default(1),
 
   // Standard audit columns
   createdAt: timestamp("created_at", { withTimezone: true })
@@ -63,27 +78,18 @@ export const customerContacts = pgTable("customer_contacts", {
   isPrimary: boolean("is_primary").notNull().default(false),
   isActive: boolean("is_active").notNull().default(true),
 
+  // Standard audit columns
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
+  createdBy: char("created_by", { length: 26 }),
+  updatedBy: char("updated_by", { length: 26 }),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  deletedBy: char("deleted_by", { length: 26 }),
 });
 
-export const customerDeliveryPoints = pgTable("customer_delivery_points", {
-  id: char("id", { length: 26 }).primaryKey(),
-  customerId: char("customer_id", { length: 26 })
-    .notNull()
-    .references(() => customers.id, { onDelete: "cascade" }),
-
-  name: varchar("name", { length: 255 }).notNull(),
-  address: text("address"),
-  city: varchar("city", { length: 100 }),
-  gpsLat: numeric("gps_lat", { precision: 10, scale: 7 }),
-  gpsLng: numeric("gps_lng", { precision: 10, scale: 7 }),
-  isDefault: boolean("is_default").notNull().default(false),
-
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
-});
+// ─── Deprecated: customer_delivery_points ─────────────────────────────────────
+// This table is being consolidated into delivery_points (see delivery-points.ts).
+// Kept temporarily for migration — to be removed after data migration completes.
+// See §4.8 of CUSTOMER_ARCHITECTURE.md and Sprint Plan task 1.3.

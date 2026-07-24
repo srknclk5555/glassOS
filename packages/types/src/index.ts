@@ -230,43 +230,20 @@ export type UpdateSettingsInput = z.infer<typeof updateSettingsSchema>;
 
 // Production Master Data schemas
 export const createMaterialCategorySchema = z.object({
-  tenantId: z.string().uuid("Invalid tenant ID"),
   name: z.string().min(2, "Material category name is required"),
-  description: z.string().optional(),
-  active: z.boolean().optional(),
+  materialType: z.string().optional(),
+  isActive: z.boolean().default(true),
 });
 export type CreateMaterialCategoryInput = z.infer<typeof createMaterialCategorySchema>;
 
-export const updateMaterialCategorySchema = createMaterialCategorySchema.extend({
-  id: z.string().uuid("Invalid material category ID"),
+export const updateMaterialCategorySchema = z.object({
+  id: z.string().length(26, "Invalid material category ID"),
+  name: z.string().min(2, "Material category name is required").optional(),
+  materialType: z.string().optional(),
+  isActive: z.boolean().optional(),
 });
 export type UpdateMaterialCategoryInput = z.infer<typeof updateMaterialCategorySchema>;
 
-export const createMaterialSchema = z.object({
-  tenantId: z.string().uuid("Invalid tenant ID").optional(),
-  categoryId: z.string().uuid("Invalid material category ID"),
-  materialCode: z.string().min(1, "Material code is required"),
-  name: z.string().min(2, "Material name is required"),
-  description: z.string().optional(),
-  thicknessMm: z.number().positive().optional(),
-  color: z.string().optional(),
-  manufacturer: z.string().optional(),
-  standardSheetWidthMm: z.number().positive().optional(),
-  standardSheetHeightMm: z.number().positive().optional(),
-  stockTracked: z.boolean().optional(),
-  temperable: z.boolean().optional(),
-  laminateCompatible: z.boolean().optional(),
-  densityKgPerM3: z.number().positive().optional(),
-  defaultUnit: z.string().optional(),
-  notes: z.string().optional(),
-  active: z.boolean().optional(),
-});
-export type CreateMaterialInput = z.infer<typeof createMaterialSchema>;
-
-export const updateMaterialSchema = createMaterialSchema.extend({
-  id: z.string().uuid("Invalid material ID"),
-});
-export type UpdateMaterialInput = z.infer<typeof updateMaterialSchema>;
 
 export const createMaterialUnitProfileSchema = z.object({
   materialId: z.string().uuid("Invalid material ID"),
@@ -591,3 +568,707 @@ export const createPersonnelShiftSchema = z.object({
   isActive: z.boolean().default(true),
 });
 export type CreatePersonnelShiftInput = z.infer<typeof createPersonnelShiftSchema>;
+
+// ─── Warehouse Management Schemas (Sprint 2.9.0) ─────────────────────────────
+
+export const WAREHOUSE_TYPES = [
+  "raw_material",
+  "semi_finished",
+  "finished_goods",
+  "consumables",
+  "quality",
+  "scrap",
+  "shipping",
+  "spare_parts",
+] as const;
+
+export type WarehouseType = typeof WAREHOUSE_TYPES[number];
+
+export const createWarehouseSchema = z.object({
+  warehouseCode: z.string().min(1, "Warehouse code is required").max(50),
+  name: z.string().min(1, "Warehouse name is required").max(255),
+  warehouseType: z.enum(WAREHOUSE_TYPES, {
+    errorMap: () => ({ message: "Invalid warehouse type" }),
+  }),
+  factoryId: z.preprocess(
+    (v) => (v === "" || v === null || v === undefined ? undefined : v),
+    z.string().length(26).optional(),
+  ),
+  description: z.preprocess(
+    (v) => (v === "" || v === null || v === undefined ? undefined : v),
+    z.string().optional(),
+  ),
+  managerId: z.preprocess(
+    (v) => (v === "" || v === null || v === undefined ? undefined : v),
+    z.string().length(26).optional(),
+  ),
+  isActive: z.boolean().default(true),
+  notes: z.preprocess(
+    (v) => (v === "" || v === null || v === undefined ? undefined : v),
+    z.string().optional(),
+  ),
+});
+export type CreateWarehouseInput = z.infer<typeof createWarehouseSchema>;
+
+export const updateWarehouseSchema = createWarehouseSchema.partial().extend({
+  id: z.string().length(26, "Invalid warehouse ID"),
+});
+export type UpdateWarehouseInput = z.infer<typeof updateWarehouseSchema>;
+
+// ─── Material Master Schemas (Sprint 2.9.0) ──────────────────────────────────
+
+export const MATERIAL_TYPES = [
+  "raw_material",
+  "semi_finished",
+  "finished_good",
+  "consumable",
+  "spare_part",
+  "packaging",
+  "chemical",
+  "service",
+  "other",
+] as const;
+
+export type MaterialType = typeof MATERIAL_TYPES[number];
+
+export const MATERIAL_STATUS = ["active", "passive", "blocked"] as const;
+export type MaterialStatus = typeof MATERIAL_STATUS[number];
+
+export const MATERIAL_UNITS = [
+  "piece",
+  "kg",
+  "g",
+  "ton",
+  "m",
+  "mm",
+  "m2",
+  "m3",
+  "l",
+  "box",
+  "roll",
+  "package",
+] as const;
+
+export type MaterialUnit = typeof MATERIAL_UNITS[number];
+
+export const MATERIAL_ORIGIN_TYPES = ["domestic", "imported"] as const;
+export type MaterialOriginType = typeof MATERIAL_ORIGIN_TYPES[number];
+
+// ─── Inventory Types ──────────────────────────────────────────────────────────
+
+export const INVENTORY_TYPES = [
+  "raw_material",
+  "semi_finished",
+  "finished_product",
+  "traded_goods",
+  "consumable",
+  "spare_part",
+  "packaging",
+  "service",
+  "scrap",
+  "remnant",
+  "by_product",
+] as const;
+
+export type InventoryType = typeof INVENTORY_TYPES[number];
+
+/* ── Preprocess helper for optional ULID fields ── */
+const optionalUlid = (label: string) =>
+  z.preprocess(
+    (v) => (v === "" || v === null || v === undefined ? undefined : v),
+    z.string().length(26, { message: `${label} must be exactly 26 characters` }).optional()
+  );
+
+/* ── Preprocess helper for optional string fields ── */
+const optionalString = () =>
+  z.preprocess(
+    (v) => (v === "" || v === null || v === undefined ? undefined : v),
+    z.string().optional()
+  );
+
+/* ── Preprocess helper for optional numeric fields ── */
+const optionalNumeric = () =>
+  z.preprocess(
+    (v) => (v === "" || v === null || v === undefined ? undefined : v),
+    z.string().optional()
+  );
+
+export const createMaterialSchema = z.object({
+  materialCode: z.string().min(1, "Material code is required").max(50),
+  name: z.string().min(1, "Material name is required").max(255),
+  shortName: optionalString(),
+  description: optionalString(),
+
+  materialType: z.enum(MATERIAL_TYPES, {
+    errorMap: () => ({ message: "Invalid material type" }),
+  }),
+  materialGroupId: optionalUlid("Material group"),
+  brand: optionalString(),
+  model: optionalString(),
+
+  // Physical Attributes
+  thicknessMm: optionalNumeric(),
+  color: optionalString(),
+
+  originType: z.enum(MATERIAL_ORIGIN_TYPES).optional(),
+  originCountry: optionalString(),
+
+  factoryId: optionalUlid("Factory"),
+  defaultWarehouseId: optionalUlid("Default warehouse"),
+  defaultLocationId: optionalUlid("Default location"),
+  defaultSupplierId: optionalUlid("Default supplier"),
+
+  baseUnit: z.enum(MATERIAL_UNITS, {
+    errorMap: () => ({ message: "Invalid base unit" }),
+  }).default("piece"),
+
+  stockTracking: z.boolean().default(true),
+  inventoryItem: z.boolean().default(true),
+  purchasable: z.boolean().default(false),
+  sellable: z.boolean().default(false),
+  manufacturable: z.boolean().default(false),
+  qualityInspectionRequired: z.boolean().default(false),
+  batchTracking: z.boolean().default(false),
+  serialTracking: z.boolean().default(false),
+  expirationTracking: z.boolean().default(false),
+
+  minStock: optionalNumeric(),
+  maxStock: optionalNumeric(),
+  criticalStock: optionalNumeric(),
+  safetyStock: optionalNumeric(),
+  reorderPoint: optionalNumeric(),
+  reorderQuantity: optionalNumeric(),
+
+  standardCost: optionalNumeric(),
+  averageCost: optionalNumeric(),
+  lastPurchasePrice: optionalNumeric(),
+  currency: optionalString(),
+
+  barcode: optionalString(),
+  qrCode: optionalString(),
+  rfidCode: optionalString(),
+
+  imageUrl: optionalString(),
+  technicalDrawingUrl: optionalString(),
+  documentUrl: optionalString(),
+
+  customCode1: optionalString(),
+  customCode2: optionalString(),
+  customCode3: optionalString(),
+  customCode4: optionalString(),
+  customCode5: optionalString(),
+
+  status: z.enum(MATERIAL_STATUS).default("active"),
+  isActive: z.boolean().default(true),
+  notes: optionalString(),
+});
+export type CreateMaterialInput = z.infer<typeof createMaterialSchema>;
+
+export const updateMaterialSchema = createMaterialSchema.partial().extend({
+  id: z.string().length(26, "Invalid material ID"),
+});
+export type UpdateMaterialInput = z.infer<typeof updateMaterialSchema>;
+
+// ─── Custom Code Definitions (Sprint 2.10.3) ─────────────────────────────────
+
+export const createCustomCodeDefinitionSchema = z.object({
+  fieldNumber: z.number().int().min(1).max(5),
+  value: z.string().min(1, "Value is required").max(100),
+  label: z.string().min(1, "Label is required").max(255),
+  sortOrder: z.number().int().min(0).default(0),
+  isActive: z.boolean().default(true),
+});
+export type CreateCustomCodeDefinitionInput = z.infer<typeof createCustomCodeDefinitionSchema>;
+
+export const updateCustomCodeDefinitionSchema = createCustomCodeDefinitionSchema.extend({
+  id: z.string().length(26, "Invalid ID"),
+});
+export type UpdateCustomCodeDefinitionInput = z.infer<typeof updateCustomCodeDefinitionSchema>;
+
+// ─── Goods Receipt Types (Sprint 2.10.0) ─────────────────────────────────────
+
+export const GOODS_RECEIPT_STATUS = ["draft", "completed", "cancelled"] as const;
+export type GoodsReceiptStatus = typeof GOODS_RECEIPT_STATUS[number];
+
+export const QUALITY_STATUS = ["accepted", "conditional", "rejected"] as const;
+export type QualityStatus = typeof QUALITY_STATUS[number];
+
+export const ATTACHMENT_CATEGORIES = [
+  "irsiye",
+  "fatura",
+  "quality_cert",
+  "ce_cert",
+  "photo_truck",
+  "photo_package",
+  "photo_damage",
+  "photo_despatch",
+  "other",
+] as const;
+export type AttachmentCategory = typeof ATTACHMENT_CATEGORIES[number];
+
+export const ATTACHMENT_FILE_TYPES = ["image", "pdf", "document"] as const;
+export type AttachmentFileType = typeof ATTACHMENT_FILE_TYPES[number];
+
+/* ── Goods Receipt Item Schema ── */
+
+/* ── Preprocess helper for optional integer fields ── */
+const optionalInt = () =>
+  z.preprocess(
+    (v) => (v === "" || v === null || v === undefined ? undefined : Number(v)),
+    z.number().int().optional()
+  );
+
+export const createGoodsReceiptItemSchema = z.object({
+  materialId: z.string().length(26, "Material ID must be exactly 26 characters"),
+  formatId: optionalUlid("Format"),
+  widthMm: optionalNumeric(),
+  heightMm: optionalNumeric(),
+
+  // Plate count (adet) — operator enters this (e.g. 56 plates)
+  plateCount: optionalInt(),
+
+  // Total area in m² — auto-calculated from plateCount × (width×height / 1,000,000)
+  totalAreaM2: optionalNumeric(),
+
+  quantity: z.preprocess(
+    (v) => (v === "" || v === null || v === undefined ? undefined : Number(v)),
+    z.number().positive("Quantity must be positive")
+  ),
+  unit: z.enum(MATERIAL_UNITS, {
+    errorMap: () => ({ message: "Invalid unit" }),
+  }),
+  lotNumber: optionalString(),
+  unitCost: optionalNumeric(),
+  currency: optionalString(),
+  targetWarehouseId: optionalUlid("Target warehouse"),
+  qualityStatus: z.enum(QUALITY_STATUS, {
+    errorMap: () => ({ message: "Invalid quality status" }),
+  }).default("accepted"),
+  qualityNotes: optionalString(),
+
+  // Quality tracking — damaged/missing counts
+  damagedCount: optionalInt(),
+  missingCount: optionalInt(),
+
+  isPlateTracked: z.boolean().default(false),
+});
+
+export type CreateGoodsReceiptItemInput = z.infer<typeof createGoodsReceiptItemSchema>;
+
+/* ── Goods Receipt Attachment Schema ── */
+
+export const createGoodsReceiptAttachmentSchema = z.object({
+  goodsReceiptItemId: optionalUlid("Item"),
+  fileName: z.string().min(1, "File name is required"),
+  fileType: z.enum(ATTACHMENT_FILE_TYPES, {
+    errorMap: () => ({ message: "Invalid file type" }),
+  }),
+  fileUrl: z.string().url("Invalid file URL"),
+  mimeType: z.string().min(1, "MIME type is required"),
+  fileSizeBytes: z.preprocess(
+    (v) => (v === "" || v === null || v === undefined ? undefined : Number(v)),
+    z.number().int().positive("File size must be positive")
+  ),
+  category: z.enum(ATTACHMENT_CATEGORIES, {
+    errorMap: () => ({ message: "Invalid attachment category" }),
+  }),
+  description: optionalString(),
+});
+
+export type CreateGoodsReceiptAttachmentInput = z.infer<typeof createGoodsReceiptAttachmentSchema>;
+
+/* ── Goods Receipt Plate Schema ── */
+
+export const createGoodsReceiptPlateSchema = z.object({
+  plateSerial: z.string().min(1, "Plate serial is required"),
+  widthMm: z.preprocess(
+    (v) => (v === "" || v === null || v === undefined ? undefined : Number(v)),
+    z.number().positive("Width must be positive")
+  ),
+  heightMm: z.preprocess(
+    (v) => (v === "" || v === null || v === undefined ? undefined : Number(v)),
+    z.number().positive("Height must be positive")
+  ),
+  thicknessMm: z.preprocess(
+    (v) => (v === "" || v === null || v === undefined ? undefined : Number(v)),
+    z.number().positive("Thickness must be positive").optional()
+  ),
+});
+
+export type CreateGoodsReceiptPlateInput = z.infer<typeof createGoodsReceiptPlateSchema>;
+
+/* ── Goods Receipt Header Schema ── */
+
+export const createGoodsReceiptSchema = z.object({
+  // Core
+  receiptDate: z.string().min(1, "Receipt date is required"),
+  receiptTime: z.string().regex(/^\d{2}:\d{2}$/, "Invalid time (HH:mm)"),
+  warehouseId: z.string().length(26, "Warehouse ID must be exactly 26 characters"),
+  receivedById: optionalUlid("Received by"),
+
+  // Optional
+  supplierId: optionalUlid("Supplier"),
+  purchaseOrderId: optionalUlid("Purchase order"),
+
+  // Vehicle (Optional)
+  vehiclePlate: optionalString(),
+  trailerPlate: optionalString(),
+  driverName: optionalString(),
+  driverPhone: optionalString(),
+  carrierCompany: optionalString(),
+
+  // Documents (Optional)
+  despatchNumber: optionalString(),
+  despatchDate: optionalString(),
+  invoiceNumber: optionalString(),
+  orderReference: optionalString(),
+
+  // Notes
+  notes: optionalString(),
+
+  // Items (minimum 1)
+  items: z.array(createGoodsReceiptItemSchema).min(1, "At least one item is required"),
+});
+
+export type CreateGoodsReceiptInput = z.infer<typeof createGoodsReceiptSchema>;
+
+export const updateGoodsReceiptSchema = z.object({
+  id: z.string().length(26, "Invalid goods receipt ID"),
+  receiptDate: z.string().min(1).optional(),
+  receiptTime: z.string().regex(/^\d{2}:\d{2}$/, "Invalid time (HH:mm)").optional(),
+  warehouseId: z.string().length(26).optional(),
+  receivedById: optionalUlid("Received by"),
+  supplierId: optionalUlid("Supplier"),
+  purchaseOrderId: optionalUlid("Purchase order"),
+  vehiclePlate: optionalString(),
+  trailerPlate: optionalString(),
+  driverName: optionalString(),
+  driverPhone: optionalString(),
+  carrierCompany: optionalString(),
+  despatchNumber: optionalString(),
+  despatchDate: optionalString(),
+  invoiceNumber: optionalString(),
+  orderReference: optionalString(),
+  notes: optionalString(),
+  status: z.enum(GOODS_RECEIPT_STATUS).optional(),
+});
+
+export type UpdateGoodsReceiptInput = z.infer<typeof updateGoodsReceiptSchema>;
+
+/* ── ULID helper ── */
+const ulid = () => z.string().length(26, "ID must be exactly 26 characters");
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   CUSTOMER MODULE SCHEMAS (Phase 2 — CUSTOMER_ARCHITECTURE.md)
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── JSONB Value Object Schemas ── */
+
+export const qualityProfileSchema = z.object({
+  version: z.number().int().min(1).default(1),
+  edgeQualityMm: z.number().min(0).default(0.5),
+  opticalQuality: z.enum(["architectural", "automotive", "mirror", "solar"]).default("architectural"),
+  scratchTolerance: z.enum(["standard", "strict", "none"]).default("standard"),
+  bubbleTolerance: z.enum(["standard", "strict", "none"]).default("standard"),
+  inspectionLevel: z.enum(["100%", "sampling", "skip"]).default("100%"),
+  acceptsBGrade: z.boolean().default(false),
+  acceptsNearSize: z.boolean().default(false),
+  requiresMillCert: z.boolean().default(false),
+  maxDefectsPerSqm: z.number().int().min(0).default(2),
+});
+
+export type QualityProfile = z.infer<typeof qualityProfileSchema>;
+
+export const productionPreferencesSchema = z.object({
+  version: z.number().int().min(1).default(1),
+  defaultEdgework: z.enum(["flat_ground", "arrissing", "seamed", "beveled", "polished"]).default("flat_ground"),
+  defaultTempering: z.enum(["full_temper", "heat_strengthened", "annealed"]).default("full_temper"),
+  defaultSpacerType: z.enum(["aluminum", "warm_edge", "tps", "swiggle", "none"]).default("aluminum"),
+  defaultGasFill: z.enum(["air", "argon", "krypton", "xenon"]).default("argon"),
+  defaultFilmType: z.enum(["low_e", "solar_control", "self_cleaning", "none"]).default("low_e"),
+  defaultToleranceClass: z.enum(["±0.5mm", "±1.0mm", "±2.0mm"]).default("±1.0mm"),
+  laminationPreference: z.enum(["pvb", "eva", "sgp", "acoustic", "none"]).default("pvb"),
+});
+
+export type ProductionPreferences = z.infer<typeof productionPreferencesSchema>;
+
+export const labelSpecificationSchema = z.object({
+  version: z.number().int().min(1).default(1),
+  barcodeFormat: z.enum(["code128", "qr", "datamatrix", "none"]).default("code128"),
+  fields: z.array(z.string()).default(["order_ref", "dimensions", "customer_code", "thickness", "date"]),
+  labelPosition: z.enum(["top_left", "top_right", "edge"]).default("top_left"),
+  labelsPerUnit: z.number().int().min(1).default(1),
+  language: z.string().default("en"),
+  includeLogo: z.boolean().default(true),
+  protectiveFilmBeforeLabel: z.boolean().default(false),
+});
+
+export type LabelSpecification = z.infer<typeof labelSpecificationSchema>;
+
+export const packagingProfileSchema = z.object({
+  version: z.number().int().min(1).default(1),
+  packagingType: z.enum(["stillage", "a_frame", "crate", "cardboard", "loose", "export_crate"]).default("stillage"),
+  separationMaterial: z.enum(["paper", "cork_powder", "foam", "plastic_interleaf", "none"]).default("cork_powder"),
+  interleaving: z.enum(["every_sheet", "every_5", "none"]).default("every_sheet"),
+  strapping: z.enum(["metal_band", "plastic_band", "none"]).default("metal_band"),
+  cornerProtection: z.enum(["cardboard", "plastic", "none"]).default("cardboard"),
+  protectiveFilm: z.enum(["one_side", "both_sides", "none"]).default("one_side"),
+  maxWeightKg: z.number().min(0).default(1500),
+  maxPieces: z.number().int().min(0).default(50),
+});
+
+export type PackagingProfile = z.infer<typeof packagingProfileSchema>;
+
+export const communicationProfileSchema = z.object({
+  version: z.number().int().min(1).default(1),
+  channels: z.record(
+    z.enum(["order_confirmed", "production_started", "production_completed", "ready_for_dispatch", "dispatched", "delivered"]),
+    z.object({
+      type: z.enum(["email", "sms", "phone"]),
+      contactId: ulid().optional(),
+      phone: z.string().optional(),
+    })
+  ).default({}),
+});
+
+export type CommunicationProfile = z.infer<typeof communicationProfileSchema>;
+
+export const operationalBlockSchema = z.object({
+  blockedAt: z.string().datetime().optional(),
+  blockedBy: ulid().optional(),
+  blockReason: z.string().min(1, "Block reason is required"),
+  blockCategory: z.enum(["quality", "documentation", "specification", "logistics", "other"]),
+  blockReleasedAt: z.string().datetime().optional(),
+  blockReleasedBy: ulid().optional(),
+});
+
+export type OperationalBlock = z.infer<typeof operationalBlockSchema>;
+
+/* ─── Customer Aggregate Root Schemas ─── */
+
+export const createCustomerSchemaV2 = z.object({
+  customerCode: z.string().min(1, "Customer code is required"),
+  name: z.string().min(2, "Customer name is required"),
+  shortName: z.string().optional(),
+  taxNumber: z.string().optional(),
+  taxOffice: z.string().optional(),
+  phone: z.string().optional(),
+  email: z.string().email("Invalid email").optional().or(z.literal("")),
+  address: z.string().optional(),
+  city: z.string().optional(),
+  district: z.string().optional(),
+  country: z.string().optional(),
+  notes: z.string().optional(),
+  isActive: z.boolean().default(true),
+});
+
+export type CreateCustomerInputV2 = z.infer<typeof createCustomerSchemaV2>;
+
+export const updateCustomerSchemaV2 = createCustomerSchemaV2.extend({
+  id: ulid(),
+  version: z.number().int().min(1),
+});
+
+export type UpdateCustomerInputV2 = z.infer<typeof updateCustomerSchemaV2>;
+
+/* ─── Contact Schemas ─── */
+
+export const createCustomerContactSchemaV2 = z.object({
+  customerId: ulid(),
+  name: z.string().min(2, "Contact name is required"),
+  title: z.string().optional(),
+  role: z.string().optional(),
+  phone: z.string().optional(),
+  whatsapp: z.string().optional(),
+  email: z.string().email("Invalid email").optional().or(z.literal("")),
+  isPrimary: z.boolean().default(false),
+  isActive: z.boolean().default(true),
+});
+
+export type CreateCustomerContactInputV2 = z.infer<typeof createCustomerContactSchemaV2>;
+
+export const updateCustomerContactSchemaV2 = createCustomerContactSchemaV2.extend({
+  id: ulid(),
+});
+
+export type UpdateCustomerContactInputV2 = z.infer<typeof updateCustomerContactSchemaV2>;
+
+export const setPrimaryContactSchema = z.object({
+  id: ulid(),
+  customerId: ulid(),
+});
+
+export type SetPrimaryContactInput = z.infer<typeof setPrimaryContactSchema>;
+
+/* ─── Delivery Point Schemas ─── */
+
+export const createDeliveryPointSchemaV2 = z.object({
+  customerId: ulid(),
+  name: z.string().min(2, "Delivery point name is required"),
+  address: z.string().optional(),
+  city: z.string().optional(),
+  district: z.string().optional(),
+  latitude: z.string().optional(),
+  longitude: z.string().optional(),
+  phone: z.string().optional(),
+  note: z.string().optional(),
+  isDefault: z.boolean().default(false),
+  isActive: z.boolean().default(true),
+});
+
+export type CreateDeliveryPointInputV2 = z.infer<typeof createDeliveryPointSchemaV2>;
+
+export const updateDeliveryPointSchemaV2 = createDeliveryPointSchemaV2.extend({
+  id: ulid(),
+});
+
+export type UpdateDeliveryPointInputV2 = z.infer<typeof updateDeliveryPointSchemaV2>;
+
+export const setDefaultDeliveryPointSchema = z.object({
+  id: ulid(),
+  customerId: ulid(),
+});
+
+export type SetDefaultDeliveryPointInput = z.infer<typeof setDefaultDeliveryPointSchema>;
+
+/* ─── Glass Catalog Schemas ─── */
+
+export const createGlassCatalogSchema = z.object({
+  customerId: ulid(),
+  productCode: z.string().min(1, "Product code is required"),
+  glassType: z.string().min(1, "Glass type is required"),
+  thicknessMm: z.number().positive().optional(),
+  defaultWidthMm: z.number().positive().optional(),
+  defaultHeightMm: z.number().positive().optional(),
+  defaultPieces: z.number().int().positive().optional(),
+  isActive: z.boolean().default(true),
+  notes: z.string().optional(),
+});
+
+export type CreateGlassCatalogInput = z.infer<typeof createGlassCatalogSchema>;
+
+export const updateGlassCatalogSchema = createGlassCatalogSchema.extend({
+  id: ulid(),
+});
+
+export type UpdateGlassCatalogInput = z.infer<typeof updateGlassCatalogSchema>;
+
+/* ─── Special Instruction Schemas ─── */
+
+export const createCustomerInstructionSchema = z.object({
+  customerId: ulid(),
+  title: z.string().min(1, "Title is required"),
+  instruction: z.string().min(1, "Instruction text is required"),
+  isStanding: z.boolean().default(false),
+  sortOrder: z.number().int().min(0).default(0),
+  isActive: z.boolean().default(true),
+});
+
+export type CreateCustomerInstructionInput = z.infer<typeof createCustomerInstructionSchema>;
+
+export const updateCustomerInstructionSchema = createCustomerInstructionSchema.extend({
+  id: ulid(),
+});
+
+export type UpdateCustomerInstructionInput = z.infer<typeof updateCustomerInstructionSchema>;
+
+/* ─── Instruction Condition Schemas ─── */
+
+export const createInstructionConditionSchema = z.object({
+  instructionId: ulid(),
+  field: z.string().min(1, "Field is required"),
+  operator: z.string().min(1, "Operator is required"),
+  value: z.string().min(1, "Value is required"),
+  valueType: z.enum(["number", "string", "boolean", "enum"]).default("number"),
+  logicalGroup: z.number().int().min(0).default(0),
+  sortOrder: z.number().int().min(0).default(0),
+});
+
+export type CreateInstructionConditionInput = z.infer<typeof createInstructionConditionSchema>;
+
+export const updateInstructionConditionSchema = createInstructionConditionSchema.extend({
+  id: ulid(),
+});
+
+export type UpdateInstructionConditionInput = z.infer<typeof updateInstructionConditionSchema>;
+
+/* ─── Value Object Update Schemas (scoped, include version for optimistic locking) ─── */
+
+export const updateQualityProfileSchema = z.object({
+  customerId: ulid(),
+  version: z.number().int().min(1),
+  qualityProfile: qualityProfileSchema,
+});
+
+export type UpdateQualityProfileInput = z.infer<typeof updateQualityProfileSchema>;
+
+export const updateProductionPreferencesSchema = z.object({
+  customerId: ulid(),
+  version: z.number().int().min(1),
+  productionPreferences: productionPreferencesSchema,
+});
+
+export type UpdateProductionPreferencesInput = z.infer<typeof updateProductionPreferencesSchema>;
+
+export const updateLabelSpecificationSchema = z.object({
+  customerId: ulid(),
+  version: z.number().int().min(1),
+  labelSpec: labelSpecificationSchema,
+});
+
+export type UpdateLabelSpecificationInput = z.infer<typeof updateLabelSpecificationSchema>;
+
+export const updatePackagingProfileSchema = z.object({
+  customerId: ulid(),
+  version: z.number().int().min(1),
+  packagingProfile: packagingProfileSchema,
+});
+
+export type UpdatePackagingProfileInput = z.infer<typeof updatePackagingProfileSchema>;
+
+export const updateCommunicationProfileSchema = z.object({
+  customerId: ulid(),
+  version: z.number().int().min(1),
+  communicationProfile: communicationProfileSchema,
+});
+
+export type UpdateCommunicationProfileInput = z.infer<typeof updateCommunicationProfileSchema>;
+
+/* ─── Operational Block Schemas ─── */
+
+export const blockCustomerSchema = z.object({
+  customerId: ulid(),
+  blockReason: z.string().min(1, "Block reason is required"),
+  blockCategory: z.enum(["quality", "documentation", "specification", "logistics", "other"]),
+});
+
+export type BlockCustomerInput = z.infer<typeof blockCustomerSchema>;
+
+export const releaseCustomerBlockSchema = z.object({
+  customerId: ulid(),
+});
+
+export type ReleaseCustomerBlockInput = z.infer<typeof releaseCustomerBlockSchema>;
+
+/* ─── Soft Delete Schema ─── */
+
+export const softDeleteCustomerSchema = z.object({
+  id: ulid(),
+});
+
+export type SoftDeleteCustomerInput = z.infer<typeof softDeleteCustomerSchema>;
+
+export const restoreCustomerSchema = z.object({
+  id: ulid(),
+});
+
+export type RestoreCustomerInput = z.infer<typeof restoreCustomerSchema>;
+
+// ─── Production Record Types (Sprint 6.0.0) ──────────────────────────────────
+
+export const PRODUCTION_RECORD_STATUS = ["collecting", "completed", "archived"] as const;
+export type ProductionRecordStatus = typeof PRODUCTION_RECORD_STATUS[number];
+
+/** Quality status for production events (passed/failed at a station, not goods receipt quality). */
+export const PRODUCTION_QUALITY_STATUS = ["passed", "failed", "conditional_pass", "pending_inspection"] as const;
+export type ProductionQualityStatus = typeof PRODUCTION_QUALITY_STATUS[number];

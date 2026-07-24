@@ -1,6 +1,18 @@
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
+import { sql as drizzleSql } from "drizzle-orm";
 import { AsyncLocalStorage } from "node:async_hooks";
+import * as schemaTables from "../schema/index";
+import { relationsMap } from "./relations";
+
+// Build a combined schema that includes both tables and relations.
+// Relation keys use "{tableName}Relations" suffix to avoid collision with table keys.
+const combinedSchema = {
+  ...schemaTables,
+  ...Object.fromEntries(
+    Object.entries(relationsMap).map(([k, v]) => [`${k}Relations`, v])
+  ),
+};
 
 // ─── Default DB Client ──────────────────────────────────────────────────────
 // Set once at startup so services don't need to import the client directly.
@@ -148,37 +160,37 @@ export async function withTenantSession<T>(
     return callback({ kind: "transaction" }, context);
   }
 
-  // Use a real PostgreSQL transaction with session variables
-  return sql.begin(async (tx) => {
-    // Set RLS session variables inside the transaction
-    // SET LOCAL is scoped to the current transaction
+  // Use Drizzle's built-in transaction API which correctly wraps
+  // postgres.js transaction objects WITHOUT accessing client.options.parsers
+  // (unlike drizzle(tx, { schema }) which fails on postgres.js transaction objects).
+  // The SET LOCAL calls use the drizzle sql tag to execute within the transaction.
+  const db = drizzle(sql, { schema: combinedSchema });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (db.transaction(async (tx: any) => {
+    // Set RLS session variables inside the transaction.
+    // Drizzle PgTransaction.execute() accepts the sql template tag.
     if (context.tenantId) {
-      await tx`SELECT set_config('app.current_tenant_id', ${context.tenantId}, true)`;
+      await tx.execute(drizzleSql`SELECT set_config('app.current_tenant_id', ${context.tenantId}, true)`);
     }
     if (context.factoryId) {
-      await tx`SELECT set_config('app.current_factory_id', ${context.factoryId}, true)`;
+      await tx.execute(drizzleSql`SELECT set_config('app.current_factory_id', ${context.factoryId}, true)`);
     }
     if (context.userId) {
-      await tx`SELECT set_config('app.current_user_id', ${context.userId}, true)`;
+      await tx.execute(drizzleSql`SELECT set_config('app.current_user_id', ${context.userId}, true)`);
     }
     if (context.role) {
-      await tx`SELECT set_config('app.current_user_role', ${context.role}, true)`;
+      await tx.execute(drizzleSql`SELECT set_config('app.current_user_role', ${context.role}, true)`);
     }
     if (context.name) {
-      await tx`SELECT set_config('app.current_user_name', ${context.name}, true)`;
+      await tx.execute(drizzleSql`SELECT set_config('app.current_user_name', ${context.name}, true)`);
     }
-
-    // Create a Drizzle client wrapper from the transaction client so that
-    // all repository queries within this callback execute on the SAME
-    // PostgreSQL connection — the RLS context set above is visible.
-    const drizzleTx: any = drizzle(tx as any);
 
     // Run the callback with the Drizzle transaction in AsyncLocalStorage.
     // Repository getDb() checks this store first, so repository operations
     // automatically use the transaction without any service changes.
-    return activeTransactionStore.run(drizzleTx, () => {
+    // tx is already a valid PgTransaction instance — no need to call drizzle().
+    return activeTransactionStore.run(tx, () => {
       return callback({ kind: "transaction", parent: tx }, context);
     });
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  }) as Promise<T>;
+  })) as Promise<T>;
 }

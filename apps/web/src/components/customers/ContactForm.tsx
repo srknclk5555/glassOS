@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { createCustomerContactAction } from "@/app/actions/identity";
+import { createCustomerContactAction } from "@/app/actions/customers";
 
 export default function ContactForm({ customerId }: { customerId: string }) {
   const [submitting, setSubmitting] = useState(false);

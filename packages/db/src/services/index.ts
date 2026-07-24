@@ -9,6 +9,8 @@ export { ProductionTransferService } from "./production-transfer.service";
 export { StationOperationService } from "./station-operation.service";
 export { QualityControlService } from "./quality-control.service";
 export { DispatchService } from "./dispatch.service";
+export { ProductionRecordService } from "./production-record.service";
+export { RecipeService } from "./recipe.service";
 
 export { LocalEventPublisher, InMemoryEventPublisher } from "../events/index";
 
@@ -64,6 +66,12 @@ export type {
   MachineUpdatedEvent,
   MachineDeactivatedEvent,
   MachineStatusChangedEvent,
+  RecipeCreatedEvent,
+  RecipeUpdatedEvent,
+  RecipeArchivedEvent,
+  RecipeRestoredEvent,
+  RecipeVersionCreatedEvent,
+  RecipeClonedEvent,
 } from "./events";
 
 export type {

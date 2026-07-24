@@ -21,7 +21,7 @@ const ROLE_NAV_MAP: Record<string, string[] | '*'> = {
     'dashboard', 'quality', 'reports',
   ],
   warehouse: [
-    'dashboard', 'inventory', 'dispatch',
+    'dashboard', 'warehouses', 'materials', 'goods-receipt', 'inventory', 'dispatch',
   ],
   cutting: [
     'dashboard', 'queue', 'production',

@@ -3417,3 +3417,19 @@ export class ProductionCalculationService {
     return ProductionCalculationService.freezeDeep(result) as ProductionCalculationResult;
   }
 }
+
+// ─── Recipe Engine (Sprint 2.12.0) ────────────────────────────────────────
+export { RecipeEngine } from "./recipe-engine.js";
+export type {
+  RecipeEngineInput,
+  RecipeEngineOutput,
+  RodajSetting,
+  TrimSetting,
+  RecipeBomItem,
+  RecipeFireItem,
+  RecipeOutputItem,
+  DimensionStage,
+  CalculatedConsumedMaterial,
+  CalculatedFireLoss,
+  CalculatedProduct,
+} from "./recipe-engine-types.js";

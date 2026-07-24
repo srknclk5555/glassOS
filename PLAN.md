@@ -1,8 +1,9 @@
 # 🏭 GlassOS — Ana Proje Planı (PLAN.md)
 
 > **Sürüm:** 1.0 — Sentezlenmiş Referans Dokümanı  
-> **Tarih:** 14 Temmuz 2026  
-> **Durum:** Yaşayan Doküman — Bu dosya projenin **tek ve nihai referans kaynağıdır (Single Source of Truth).**  
+> **Tarih:** 14 Temmuz 2026 (son güncelleme: 19 Temmuz 2026)  
+> **Durum:** ✅ Aktif Geliştirme — Sprint 2.10.x devam ediyor  
+> **Aktif Modüller:** Auth, Multi-Tenant, Dashboard, Machines, Stations, Personnel, Warehouses, Materials, Goods Receipt, Customers (7 tab), Orders  
 > Her teknik karar, yeni özellik veya faz geçişi bu dosyaya yansıtılmalıdır.
 
 ---
@@ -1991,17 +1992,72 @@ Kapsam: Tamamlanan maddeler [x] ile işaretle, yeni kararları Bölüm 9'a ekle
 ✅ Faz planı oluşturuldu
 ✅ Bu PLAN.md dosyası oluşturuldu
 
-[/] Faz 0: Geliştirme aşamasında (Monorepo ve DB tamamlandı, Auth ve RLS sırada)
+[/] Faz 0: Geliştirme aşamasında (Monorepo ve DB tamamlandı)
+✅ Modüller: Machines, Stations, Personnel, Warehouses, Materials, Goods Receipt tamamlandı
 🔲 Faz 1 → 7: Sırasıyla gelecek
 ```
 
-**Bir sonraki adım:** RLS politikaları yazılacak, Auth.js v5 ile yetkilendirme altyapısı kurulacak.
+**Bir sonraki adım:** Goods Receipt (Mal Kabul) modülü tamamlandı. Sıradaki modül: Inventory Management veya Order Management.
 
-> Sprint 2.3 için öncelik: Factory Configuration Engine altyapısı tasarlanmalı; mevcut Sprint 2.2 Architecture Baseline korunmalı. Sprint 2.3.3 kapsamında cutting-domain foundation modeli eklendi; hesaplama, optimization, nesting, inventory, valuation ve cost mantığı bu sprintte dahil edilmedi.
+> Sprint 2.10.0 kapsamında Goods Receipt modülü eklendi: 4 tablo (goods_receipts, goods_receipt_items, goods_receipt_attachments, goods_receipt_plates), Zod doğrulama, 8 server action (CRUD + status transitions), DataGrid list page with stats/filters, create dialog with vehicle/document/items/plates sections, detail Sheet drawer, full i18n (EN/TR), permissions (5 roles), navigation, DB migration generated. Pre-existing TS errors in masterData.ts and materials pages fixed.
 
 ---
 
-_Son Güncelleme: 15 Temmuz 2026 — Sprint 2.2 tamamlandı. Production Calculation Engine mimari dokümantasyonu eklendi (Business Dimension / Production Dimension ayrımı, Trim/Grinding Factory Configuration, 9 kayip sınıfı, Remnant/Scrap otomasyonu, katmanlı maliyet motoru). RLS geliştirildi, glassos_app rolü uygulamaya alındı._
+_Son Güncelleme: 2026-07-18 — Sprint 2.10.0 (Goods Receipt Module Implementation) tamamlandı. Goods Receipt full CRUD, Drizzle schema (4 tables), Zod validation, 8 server actions, DataGrid UI, create dialog, detail drawer, i18n (EN/TR), authorization, navigation, DB migration eklendi. Pre-existing TypeScript hataları (masterData.ts schema mismatch, materials/machines config[status] non-null assertion) giderildi. Mevcut Architecture Baseline korunuyor._
+
+---
+
+## Sprint 2.9.0 — Warehouse Master Module (COMPLETED ✅)
+
+**Tarih:** 2026-07-18  
+**Kapsam:** Depo master verisi — CRUD, DataGrid, detay, i18n, RBAC  
+**Durum:** ✅ Tamamlandı — Browser doğrulaması geçti
+
+### Yapılanlar
+
+- **Schema & DB**: `warehouses` tablosu — Drizzle ORM + RLS FORCE
+- **Server Actions**: CRUD işlemleri — `requireSession()` + `withTenantSession()` + `ensurePermission`
+- **UI Page**: DataGrid, summary cards, search, filter, sort
+- **i18n**: TR/EN tam çeviri
+
+---
+
+## Sprint 2.10.0 — Goods Receipt Module (COMPLETED ✅)
+
+**Tarih:** 2026-07-19  
+**Kapsam:** Mal Kabul (Goods Receipt) modülü — 4 tablo, Zod validasyon, 8 server action, DataGrid, i18n TR/EN, RBAC  
+**Durum:** ✅ Tamamlandı — Tüm testler geçiyor
+
+### Yapılanlar
+
+- **4 tablolu schema**: `goods_receipts`, `goods_receipt_items`, `goods_receipt_attachments`, `goods_receipt_plates`
+- **Zod validasyon**: Tüm CRUD için Zod şemaları
+- **8 server action**: CRUD + status transitions
+- **UI**: DataGrid list page, stats cards, filters, create dialog (vehicle/document/items/plates), detail drawer
+- **i18n**: TR/EN tam çeviri
+- **Permissions**: 5 rol için yetkilendirme
+- **Navigation**: Sidebar'a eklendi
+
+---
+
+## Sprint 2.10.x — Customer Master Completion (IN PROGRESS 🔄)
+
+**Tarih:** 2026-07-19 — devam ediyor  
+**Kapsam:** Müşteri modülünün master data standardizasyonu ve tamamlanması  
+**Durum:** 🔄 Aktif Geliştirme
+
+### Mevcut Durum
+
+- **6 tablo**: `customers`, `customer_contacts`, `customer_delivery_points`, `customer_glass_catalog`, `customer_instructions`, `customer_instruction_conditions`
+- **7 sekme**: Genel, Üretim, İletişim, Kişiler, Teslimat Noktaları, Cam Kataloğu, Talimatlar
+- **Tüm sekmeler HTTP 200**: Browser doğrulaması tamamlandı
+- **Drizzle Relations Fix**: `CUSTOMER_ARCHITECTURE.md`'de belgelenen pattern ile çözüldü
+- **next-auth entegrasyonu**: Auth flow tamamlandı
+
+### Kalan İşler
+
+- Customer modülü form validasyonları ve edge case'ler
+- Master data import/export
 
 ---
 

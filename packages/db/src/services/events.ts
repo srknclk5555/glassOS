@@ -481,7 +481,61 @@ export type DomainEvent =
   | MachineCreatedEvent
   | MachineUpdatedEvent
   | MachineDeactivatedEvent
-  | MachineStatusChangedEvent;
+  | MachineStatusChangedEvent
+  | RecipeCreatedEvent
+  | RecipeUpdatedEvent
+  | RecipeArchivedEvent
+  | RecipeRestoredEvent
+  | RecipeVersionCreatedEvent
+  | RecipeClonedEvent;
+
+// ─── Sprint 7.0 — Recipe Events ─────────────────────────────────────────────
+
+export interface RecipeCreatedEvent {
+  readonly eventType: "recipe.created";
+  readonly recipeId: string;
+  readonly recipeCode: string;
+  readonly name: string;
+  readonly createdAt: Date;
+}
+
+export interface RecipeUpdatedEvent {
+  readonly eventType: "recipe.updated";
+  readonly recipeId: string;
+  readonly recipeCode: string;
+  readonly changedFields: string[];
+  readonly updatedAt: Date;
+}
+
+export interface RecipeArchivedEvent {
+  readonly eventType: "recipe.archived";
+  readonly recipeId: string;
+  readonly recipeCode: string;
+  readonly archivedAt: Date;
+}
+
+export interface RecipeRestoredEvent {
+  readonly eventType: "recipe.restored";
+  readonly recipeId: string;
+  readonly recipeCode: string;
+  readonly restoredAt: Date;
+}
+
+export interface RecipeVersionCreatedEvent {
+  readonly eventType: "recipe.version.created";
+  readonly recipeId: string;
+  readonly recipeCode: string;
+  readonly versionNumber: number;
+  readonly createdAt: Date;
+}
+
+export interface RecipeClonedEvent {
+  readonly eventType: "recipe.cloned";
+  readonly recipeId: string;
+  readonly sourceRecipeId: string;
+  readonly newRecipeCode: string;
+  readonly createdAt: Date;
+}
 
 // ─── Event Publisher Interface (for future DI) ───────────────────────────────
 

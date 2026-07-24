@@ -3,9 +3,12 @@ import {
   auditLogs,
   customers,
   customerContacts,
-  customerDeliveryPoints,
+  customerGlassCatalog,
+  customerInstructionConditions,
+  customerInstructions,
   cuttingResultItems,
   cuttingResults,
+  deliveryPoints,
   factories,
   factoryConfigurations,
   fireInventoryItems,
@@ -38,6 +41,7 @@ import {
   productionOperations,
   productionOrders,
   productionQueueItems,
+  productionRecords,
   productionQueues,
   products,
   recipeItems,
@@ -76,6 +80,7 @@ export const relationsMap = {
     orders: many(orders),
     productionOrders: many(productionOrders),
     productionQueues: many(productionQueues),
+    productionRecords: many(productionRecords),
     reworkOrders: many(reworkOrders),
     auditLogs: many(auditLogs),
   })),
@@ -93,6 +98,7 @@ export const relationsMap = {
     orders: many(orders),
     productionOrders: many(productionOrders),
     productionQueues: many(productionQueues),
+    productionRecords: many(productionRecords),
     reworkOrders: many(reworkOrders),
     configurations: many(factoryConfigurations),
     grindingProfiles: many(grindingProfiles),
@@ -155,6 +161,7 @@ export const relationsMap = {
     rules: many(recipeRules),
     versions: many(recipeVersions),
     orderLines: many(orderLines),
+    productionRecords: many(productionRecords),
   })),
   orders: relationBuilder(orders, ({ one, many }) => ({
     tenant: one(tenants, { fields: [orders.tenantId], references: [tenants.id] }),
@@ -179,6 +186,7 @@ export const relationsMap = {
     breakageEvents: many(productionBreakageEvents),
     queueItems: many(productionQueueItems),
     reworkOrders: many(reworkOrders),
+    productionRecords: many(productionRecords),
   })),
   productionQueues: relationBuilder(productionQueues, ({ one, many }) => ({
     tenant: one(tenants, { fields: [productionQueues.tenantId], references: [tenants.id] }),
@@ -224,14 +232,26 @@ export const relationsMap = {
     tenant: one(tenants, { fields: [customers.tenantId], references: [tenants.id] }),
     factory: one(factories, { fields: [customers.factoryId], references: [factories.id] }),
     contacts: many(customerContacts),
-    deliveryPoints: many(customerDeliveryPoints),
+    deliveryPoints: many(deliveryPoints),
+    glassCatalog: many(customerGlassCatalog),
+    instructions: many(customerInstructions),
     orders: many(orders),
   })),
   customerContacts: relationBuilder(customerContacts, ({ one }) => ({
     customer: one(customers, { fields: [customerContacts.customerId], references: [customers.id] }),
   })),
-  customerDeliveryPoints: relationBuilder(customerDeliveryPoints, ({ one }) => ({
-    customer: one(customers, { fields: [customerDeliveryPoints.customerId], references: [customers.id] }),
+  deliveryPoints: relationBuilder(deliveryPoints, ({ one }) => ({
+    customer: one(customers, { fields: [deliveryPoints.customerId], references: [customers.id] }),
+  })),
+  customerGlassCatalog: relationBuilder(customerGlassCatalog, ({ one }) => ({
+    customer: one(customers, { fields: [customerGlassCatalog.customerId], references: [customers.id] }),
+  })),
+  customerInstructions: relationBuilder(customerInstructions, ({ one, many }) => ({
+    customer: one(customers, { fields: [customerInstructions.customerId], references: [customers.id] }),
+    conditions: many(customerInstructionConditions),
+  })),
+  customerInstructionConditions: relationBuilder(customerInstructionConditions, ({ one }) => ({
+    instruction: one(customerInstructions, { fields: [customerInstructionConditions.instructionId], references: [customerInstructions.id] }),
   })),
   auditLogs: relationBuilder(auditLogs, ({ one }) => ({
     tenant: one(tenants, { fields: [auditLogs.tenantId], references: [tenants.id] }),
@@ -265,6 +285,13 @@ export const relationsMap = {
   })),
   productionEvents: relationBuilder(productionEvents, ({ one }) => ({
     productionOrder: one(productionOrders, { fields: [productionEvents.productionOrderId], references: [productionOrders.id] }),
+  })),
+  productionRecords: relationBuilder(productionRecords, ({ one }) => ({
+    tenant: one(tenants, { fields: [productionRecords.tenantId], references: [tenants.id] }),
+    factory: one(factories, { fields: [productionRecords.factoryId], references: [factories.id] }),
+    productionOrder: one(productionOrders, { fields: [productionRecords.productionOrderId], references: [productionOrders.id] }),
+    recipe: one(recipes, { fields: [productionRecords.recipeId], references: [recipes.id] }),
+    completedByUser: one(users, { fields: [productionRecords.completedBy], references: [users.id] }),
   })),
   productionBreakageEvents: relationBuilder(productionBreakageEvents, ({ one, many }) => ({
     productionOrder: one(productionOrders, { fields: [productionBreakageEvents.productionOrderId], references: [productionOrders.id] }),

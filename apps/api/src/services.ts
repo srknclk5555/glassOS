@@ -6,6 +6,8 @@ import {
   ProductionRepository,
   ProductionQueueRepository,
   ReworkRepository,
+  ProductionRecordRepository,
+  RecipeRepository,
   CustomerService,
   OrderService,
   ProductionService,
@@ -16,6 +18,8 @@ import {
   StationOperationService,
   QualityControlService,
   DispatchService,
+  ProductionRecordService,
+  RecipeService,
   LocalEventPublisher,
 } from "@repo/db";
 
@@ -30,6 +34,8 @@ export interface AppServices {
   rework: ReworkService;
   cutting: CuttingExecutionService;
   station: StationOperationService;
+  productionRecord: ProductionRecordService;
+  recipe: RecipeService;
 }
 
 export function createAppServices(): AppServices {
@@ -40,6 +46,8 @@ export function createAppServices(): AppServices {
   const productionRepository = new ProductionRepository(db as never);
   const productionQueueRepository = new ProductionQueueRepository(db as never);
   const reworkRepository = new ReworkRepository(db as never);
+  const productionRecordRepository = new ProductionRecordRepository(db as never);
+  const recipeRepository = new RecipeRepository(db as never);
 
   // Singleton EventPublisher — ONE instance for the entire application
   const eventPublisher = new LocalEventPublisher();
@@ -54,7 +62,22 @@ export function createAppServices(): AppServices {
     eventPublisher,
     db as never,
   );
-  const production = new ProductionService(productionRepository, eventPublisher, db as never);
+
+  // ProductionRecordService must be created before ProductionService and
+  // ProductionQueueService, which depend on it for automatic production
+  // record creation on order completion.
+  const productionRecord = new ProductionRecordService(
+    productionRecordRepository,
+    productionRepository,
+    db as never,
+  );
+
+  const production = new ProductionService(
+    productionRepository,
+    eventPublisher,
+    db as never,
+    productionRecord,
+  );
   const queue = new ProductionQueueService(
     productionQueueRepository,
     productionRepository,
@@ -62,6 +85,7 @@ export function createAppServices(): AppServices {
     orderLineRepository,
     eventPublisher,
     db as never,
+    productionRecord,
   );
   const rework = new ReworkService(
     reworkRepository,
@@ -110,6 +134,7 @@ export function createAppServices(): AppServices {
     eventPublisher,
     db as never,
   );
+  const recipe = new RecipeService(recipeRepository, eventPublisher, db as never);
 
   return {
     customer,
@@ -122,5 +147,7 @@ export function createAppServices(): AppServices {
     rework,
     cutting,
     station,
+    productionRecord,
+    recipe,
   };
 }

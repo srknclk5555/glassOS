@@ -45,6 +45,8 @@ export { Switch } from "./components/ui/switch";
 
 export { Badge, badgeVariants } from "./components/ui/badge";
 export type { BadgeProps } from "./components/ui/badge";
+export { Combobox } from "./components/ui/combobox";
+export type { ComboboxOption, ComboboxProps } from "./components/ui/combobox";
 
 export {
   Card,

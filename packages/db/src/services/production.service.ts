@@ -2,12 +2,14 @@ import { ProductionRepository } from "../repositories/production.repository";
 import { withTenantSession } from "../db/transactions";
 
 import type { ProductionTransferredEvent, EventPublisher } from "./events";
+import type { ProductionRecordService } from "./production-record.service";
 
 export class ProductionService {
   constructor(
     private readonly productionRepository: ProductionRepository,
     private readonly eventPublisher: EventPublisher,
-    private readonly db: any
+    private readonly db: any,
+    private readonly productionRecordService?: ProductionRecordService,
   ) {}
 
   async createProductionOrder(input: {
@@ -127,7 +129,7 @@ export class ProductionService {
     status: string,
     options: { userId?: string } = {}
   ): Promise<any> {
-    return withTenantSession(async (tx, ctx) => {
+    const result = await withTenantSession(async (tx, ctx) => {
       const prod = await this.productionRepository.findById(id);
       if (!prod) {
         throw new Error(`Production order not found: ${id}`);
@@ -160,6 +162,25 @@ export class ProductionService {
 
       return this.productionRepository.update(id, changes);
     });
+
+    // ── Integration: Create Production Record on completion ─────────────
+    // Executed AFTER the status update transaction commits.
+    // Errors are caught and logged — the status transition has already
+    // succeeded. The handler is idempotent; retries won't create duplicates.
+    if (status === "completed") {
+      try {
+        await this.productionRecordService?.handleProductionCompletion(id, {
+          userId: options.userId,
+        });
+      } catch (err) {
+        console.error(
+          `[ProductionRecord] Failed to create production record for completed order ${id}:`,
+          err,
+        );
+      }
+    }
+
+    return result;
   }
 
   async validateProduction(id: string): Promise<{ valid: boolean; errors: string[] }> {

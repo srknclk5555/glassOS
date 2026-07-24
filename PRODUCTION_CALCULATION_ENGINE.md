@@ -84,6 +84,22 @@ Sistem sektör geneline uygulanamaz tek bir sabit formül kullanmaz.
 
 Bu nedenle hesaplama motorunun tüm parametreleri **Factory Configuration** üzerinden yönetilir.
 
+### 1.4. RecipeEngine ile Sorumluluk Sınırı
+
+Production Calculation Engine, **yalnızca fiili üretim verileriyle** (hangi plakaların kullanıldığı, kesim sonuçları) çalışır. Sipariş oluşturma anında (`/production/orders/new`) yapılan hesaplamalar **RecipeEngine**'e aittir ve reçete seviyesinin ötesine geçmez.
+
+| Hesaplama | RecipeEngine (Sipariş Anı) | Production Calc Engine (Kesim Anı) |
+|-----------|---------------------------|-----------------------------------|
+| Production Dimension (Net→Rodaj) | ✅ Evet | ❌ (zaten biliniyor) |
+| Teorik Reçete Tüketimi | ✅ Evet | ❌ |
+| Reçete Fire'ları | ✅ Evet | ❌ |
+| **Trim Firesi** | ❌ Hayır | ✅ Plaka bazında |
+| **Remnant / Scrap** | ❌ Hayır | ✅ Plaka bazında |
+| **Yield / Gerçek Tüketim** | ❌ Hayır | ✅ Plaka bazında |
+| **Toplam Fire Dağılımı** | ❌ Hayır | ✅ 9 sınıf |
+
+**Kural:** RecipeEngine hiçbir zaman "hangi plaka kullanılacak" bilgisine sahip değildir. Trim firesi, remnant, scrap, gerçek tüketim ve yield hesaplamaları yalnızca Production Calculation Engine'in sorumluluğundadır.
+
 ---
 
 ## 2. Business Dimension

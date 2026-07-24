@@ -200,6 +200,30 @@
 
 ---
 
+## ADR-2026-07-18-01: Material Master stok tutmaz — stok Goods Receipt ile oluşur
+
+- Status: Accepted
+- Date: 2026-07-18
+- Context: Material Master modülü tamamlanmış ve `materials_master` tablosu devreye alınmıştır. Klasik ERP sistemlerinde Material kartı doğrudan stok miktarı içerir. Ancak GlassOS'un sektör bağımsız tasarım prensibi gereği, Material Master yalnızca fiziksel ve operasyonel özellikleri taşımalı, stok verisi ayrı bir katmanda yönetilmelidir. Ayrıca mevcut `inventory_items` tablosu hâlâ eski `materials` tablosuna FK ile bağlıdır — bu bağlantının `materials_master`'a kaydırılması gerekir.
+- Decision:
+  1. **Material Master stok tutmaz.** `materials_master` tablosu yalnızca malzeme tanımını (isim, tip, birim, boyut, flagler vb.) içerir. Stok miktarı, lot ve barkod bilgileri Inventory katmanında saklanır.
+  2. **Stok, Goods Receipt sonrasında oluşur.** Mal kabul işlemi tamamlandığında (status → completed), aynı transaction içinde `inventory_items`, `inventory_lots` ve `inventory_barcodes` kayıtları oluşturulur.
+  3. **Goods Receipt, Inventory'nin tek giriş noktasıdır.** Stok girişi yalnızca Goods Receipt üzerinden yapılır. Doğrudan Inventory'e yazma işlemi yoktur. Bu, stok tutarsızlığını önler.
+  4. **Plaka bazlı takip opsiyoneldir.** `goods_receipt_items.isPlateTracked` flag'i ile satır bazında kontrol edilir. Aktifse her plaka için ayrı barcode oluşturulur, değilse tüm adetler tek barcode altında toplanır.
+  5. **Mal kabul sırasında araç ve evrak bilgileri tutulabilir.** `goods_receipts` tablosunda `vehiclePlate`, `trailerPlate`, `driverName`, `despatchNumber`, `invoiceNumber` gibi opsiyonel alanlar bulunur.
+  6. **Fotoğraf ve dosya ekleri desteklenir.** `goods_receipt_attachments` tablosu ile irsaliye, fatura, fotoğraf vb. dosyalar tutulur. Dosyalar R2/S3'te saklanır, DB'de metadata bulunur.
+  7. **Şartlı kabul ve reddedilen malzeme desteklenir.** `goods_receipt_items.qualityStatus` üç değer alır: `accepted`, `conditional`, `rejected`. Red ve şartlı kabulde `qualityNotes` zorunludur.
+  8. **Sistem sektör bağımsız kalmalıdır.** Cam sektörüne özgü alanlar (plaka takibi, ölçü, format) isteğe bağlıdır. Diğer sektörler bu alanları kullanmadan sistemi çalıştırabilir.
+- Consequences:
+  - Material Master'dan stok sorgulamak için Inventory katmanına JOIN yapılması gerekir — doğrudan stok alanı yoktur.
+  - Goods Receipt tamamlama işlemi, Inventory oluşturma ile aynı transaction'da olduğu için performans ve kilitlenme (lock) dikkatle yönetilmelidir.
+  - ✅ Mevcut `inventory_items.material_id` FK'sı eski `materials` tablosundan `materials_master.id`'ye yönlendirilmiştir. (`inventory_barcodes.material_id` henüz kullanılmamaktadır — plaka bazlı takip aktifleşince güncellenecektir.)
+  - `purchase_order_id` forward reference (plain char(26)) olarak eklenir — Purchasing modülü geliştirilince FK aktifleştirilir.
+  - Plaka bazlı takip, cam sektörü için kritiktir ancak diğer sektörler için kapatılabilir.
+  - Fotoğraf/dosya yükleme altyapısı (R2/S3) Goods Receipt'ten önce hazır olmalıdır.
+
+---
+
 ## ADR-2026-07-16-01: Operation-based Production Queue
 
 - Status: Accepted

@@ -6,6 +6,7 @@ import {
   boolean,
   integer,
   numeric,
+  jsonb,
   timestamp,
   date,
   index,
@@ -118,6 +119,12 @@ export const productionEvents = pgTable(
     ),
     eventAt: timestamp("event_at", { withTimezone: true }).notNull(),
     notes: text("notes"),
+
+    // ── Operation result data (added Sprint 6.0.0) ───────────────────────
+    resultData: jsonb("result_data"),
+    // operation-specific outcome data (e.g., cutting coordinates, tempering temperatures)
+    qualityStatus: varchar("quality_status", { length: 30 }),
+    // passed | failed | conditional_pass | pending_inspection
 
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()

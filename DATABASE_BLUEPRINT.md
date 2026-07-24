@@ -2,9 +2,9 @@
 
 > **Version:** 1.0
 > **Date:** 2026-07-16
-> **Sprint:** 2.3.22 — Database Blueprint & Architecture Lock
-> **Status:** Architecture Completed — Pending Sprint 2.4 Implementation
-> **Authority:** This document is the single source of truth for all future Drizzle schemas, PostgreSQL tables, repositories, APIs, and UI data contracts.
+> **Sprint:** 2.10.x — Active Production Schema
+> **Status:** ✅ Implemented — 72 tables live in production
+> **Authority:** This document is the single source of truth for all Drizzle schemas, PostgreSQL tables, repositories, APIs, and UI data contracts.
 
 ---
 
@@ -13,8 +13,8 @@
 | Layer                 | Status                  |
 | --------------------- | ----------------------- |
 | Architecture Status   | ✅ Completed            |
-| Implementation Status | ⏳ Planned (Sprint 2.4) |
-| Validation Status     | ⏳ Not Executed         |
+| Implementation Status | ✅ Implemented (72 tablo) |
+| Validation Status     | ✅ Verified — Browser + 119 tests passing |
 
 ---
 
@@ -749,7 +749,7 @@ inventory_items
 ├── name                TEXT NOT NULL
 ├── inventory_type      TEXT  (raw_material | semi_finished | finished_product | traded_goods | consumable | spare_part | packaging | service | scrap | remnant | by_product)
 ├── unit                TEXT  (piece | m2 | kg | m | liter | box | package | roll)
-├── material_id         ULID FK → materials (nullable — link to material card)
+├── material_id         ULID FK → materials_master (nullable — link to material master card)
 ├── product_id          ULID FK → products (nullable — link to product card)
 ├── location_id         ULID FK → inventory_locations
 ├── is_active           BOOLEAN
@@ -1191,7 +1191,7 @@ Transactions MUST be managed at the Service Layer. Each transaction begins with 
 | Risk                                                    | Tables                 | Status                                                                |
 | ------------------------------------------------------- | ---------------------- | --------------------------------------------------------------------- |
 | `production_orders.parent_id` self-reference            | production_orders      | ✅ Safe — nullable, genealogy only                                    |
-| `inventory_items` ↔ `materials` ↔ `products`            | Cross-domain reference | ✅ Safe — nullable FKs, no circular dependency                        |
+| `inventory_items` ↔ `materials_master` ↔ `products`      | Cross-domain reference | ✅ Safe — nullable FKs, no circular dependency                        |
 | `rework_orders` → `production_orders` → `rework_orders` | Potentially circular   | ✅ Safe — one direction only (rework creates new glass, not circular) |
 
 ### 12.3. Normalization Notes

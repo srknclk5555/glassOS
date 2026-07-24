@@ -20,7 +20,8 @@ export async function createMaterialAction(input: unknown) {
   if (!parsed.success) throw new Error("Invalid payload");
 
   return await withTenantSession(session, async (tx: any) => {
-    let categoryId = parsed.data.categoryId;
+    const data = parsed.data as any;
+    let categoryId = data.categoryId;
     if (!categoryId) {
       const existingCat = await tx.query.materialCategories.findFirst({ where: eq(materialCategories.tenantId, session.user.tenantId) });
       if (existingCat) categoryId = existingCat.id;
@@ -33,21 +34,21 @@ export async function createMaterialAction(input: unknown) {
     const inserted = await tx.insert(materials).values({
       tenantId: session.user.tenantId,
       categoryId,
-      materialCode: parsed.data.materialCode,
-      name: parsed.data.name,
-      description: parsed.data.description ?? null,
-      thicknessMm: parsed.data.thicknessMm ?? null,
-      color: parsed.data.color ?? null,
-      manufacturer: parsed.data.manufacturer ?? null,
-      standardSheetWidthMm: parsed.data.standardSheetWidthMm ?? null,
-      standardSheetHeightMm: parsed.data.standardSheetHeightMm ?? null,
-      stockTracked: parsed.data.stockTracked ?? true,
-      temperable: parsed.data.temperable ?? false,
-      laminateCompatible: parsed.data.laminateCompatible ?? false,
-      densityKgPerM3: parsed.data.densityKgPerM3 ?? null,
-      defaultUnit: parsed.data.defaultUnit ?? "m2",
-      notes: parsed.data.notes ?? null,
-      isActive: parsed.data.active ?? true,
+      materialCode: data.materialCode,
+      name: data.name,
+      description: data.description ?? null,
+      thicknessMm: data.thicknessMm ?? null,
+      color: data.color ?? null,
+      manufacturer: data.manufacturer ?? null,
+      standardSheetWidthMm: data.standardSheetWidthMm ?? null,
+      standardSheetHeightMm: data.standardSheetHeightMm ?? null,
+      stockTracked: data.stockTracked ?? true,
+      temperable: data.temperable ?? false,
+      laminateCompatible: data.laminateCompatible ?? false,
+      densityKgPerM3: data.densityKgPerM3 ?? null,
+      defaultUnit: data.defaultUnit ?? "m2",
+      notes: data.notes ?? null,
+      isActive: data.active ?? true,
     }).returning({ id: materials.id });
 
     const created = inserted[0];
@@ -57,7 +58,7 @@ export async function createMaterialAction(input: unknown) {
       tableName: "materials",
       recordId: created.id,
       operation: "create",
-      afterValue: { materialCode: parsed.data.materialCode, name: parsed.data.name },
+      afterValue: { materialCode: data.materialCode, name: data.name },
     });
     revalidatePath("/materials");
     return created;
@@ -72,27 +73,28 @@ export async function updateMaterialAction(input: unknown) {
   if (!parsed.success) throw new Error("Invalid payload");
 
   return await withTenantSession(session, async (tx: any) => {
+    const data = parsed.data as any;
     const condition = session.user.role === "super_admin"
-      ? eq(materials.id, parsed.data.id)
-      : and(eq(materials.id, parsed.data.id), eq(materials.tenantId, session.user.tenantId));
+      ? eq(materials.id, data.id)
+      : and(eq(materials.id, data.id), eq(materials.tenantId, session.user.tenantId));
 
     const updated = await tx.update(materials).set({
-      categoryId: parsed.data.categoryId,
-      materialCode: parsed.data.materialCode,
-      name: parsed.data.name,
-      description: parsed.data.description ?? null,
-      thicknessMm: parsed.data.thicknessMm ?? null,
-      color: parsed.data.color ?? null,
-      manufacturer: parsed.data.manufacturer ?? null,
-      standardSheetWidthMm: parsed.data.standardSheetWidthMm ?? null,
-      standardSheetHeightMm: parsed.data.standardSheetHeightMm ?? null,
-      stockTracked: parsed.data.stockTracked ?? true,
-      temperable: parsed.data.temperable ?? false,
-      laminateCompatible: parsed.data.laminateCompatible ?? false,
-      densityKgPerM3: parsed.data.densityKgPerM3 ?? null,
-      defaultUnit: parsed.data.defaultUnit ?? "m2",
-      notes: parsed.data.notes ?? null,
-      isActive: parsed.data.active ?? true,
+      categoryId: data.categoryId,
+      materialCode: data.materialCode,
+      name: data.name,
+      description: data.description ?? null,
+      thicknessMm: data.thicknessMm ?? null,
+      color: data.color ?? null,
+      manufacturer: data.manufacturer ?? null,
+      standardSheetWidthMm: data.standardSheetWidthMm ?? null,
+      standardSheetHeightMm: data.standardSheetHeightMm ?? null,
+      stockTracked: data.stockTracked ?? true,
+      temperable: data.temperable ?? false,
+      laminateCompatible: data.laminateCompatible ?? false,
+      densityKgPerM3: data.densityKgPerM3 ?? null,
+      defaultUnit: data.defaultUnit ?? "m2",
+      notes: data.notes ?? null,
+      isActive: data.active ?? true,
       updatedAt: new Date(),
     }).where(condition).returning({ id: materials.id });
 
@@ -104,7 +106,7 @@ export async function updateMaterialAction(input: unknown) {
       tableName: "materials",
       recordId: row.id,
       operation: "update",
-      afterValue: { materialCode: parsed.data.materialCode, name: parsed.data.name },
+      afterValue: { materialCode: data.materialCode, name: data.name },
     });
     revalidatePath("/materials");
     return row;
